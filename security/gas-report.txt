@@ -1,0 +1,719 @@
+Compiling 2 files with Solc 0.8.26
+Solc 0.8.26 finished in 13.57s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+   --> test/integration/AttackScenarios.t.sol:370:13:
+    |
+370 |             AttestationLib.Attestation memory att,
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/integration/AttackScenarios.t.sol:371:13:
+    |
+371 |             bytes memory sigs,
+    |             ^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/integration/AttackScenarios.t.sol:372:13:
+    |
+372 |             uint256 bitmap
+    |             ^^^^^^^^^^^^^^
+
+
+Ran 15 tests for test/unit/CollateralVerifier.t.sol:CollateralVerifierTest
+[PASS] testAsset() (gas: 2425)
+[PASS] test_getCollateralValue_nonexistent_returns_zero() (gas: 12361)
+[PASS] test_getCollateralValue_returns_stored() (gas: 240278)
+[PASS] test_invalidateProof_already_inactive_reverts() (gas: 279108)
+[PASS] test_invalidateProof_deactivates() (gas: 259931)
+[PASS] test_invalidateProof_onlyOwner() (gas: 257776)
+[PASS] test_registerAsset_onlyOwner() (gas: 36161)
+[PASS] test_registerAsset_stores_mapping() (gas: 87293)
+[PASS] test_verifyCollateralProof_emits_event() (gas: 235050)
+[PASS] test_verifyCollateralProof_invalid_proof_reverts() (gas: 95175)
+[PASS] test_verifyCollateralProof_multiple_proofs_unique_ids() (gas: 434273)
+[PASS] test_verifyCollateralProof_replay_reverts() (gas: 262160)
+[PASS] test_verifyCollateralProof_unknown_asset_reverts() (gas: 40972)
+[PASS] test_verifyCollateralProof_valid() (gas: 245621)
+[PASS] test_verifyCollateralProof_wrong_input_length_reverts() (gas: 37406)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 14.13ms (11.64ms CPU time)
+
+Ran 11 tests for test/unit/AaveAdapter.t.sol:AaveAdapterTest
+[PASS] test_depositWithProof_emits_event() (gas: 356135)
+[PASS] test_depositWithProof_expired_proof_reverts() (gas: 272919)
+[PASS] test_depositWithProof_no_receipt_token_reverts() (gas: 1012250)
+[PASS] test_depositWithProof_non_canonical_asset_reverts() (gas: 372360)
+[PASS] test_depositWithProof_replay_reverts() (gas: 393592)
+[PASS] test_depositWithProof_success() (gas: 366744)
+[PASS] test_redeemReceipt() (gas: 400093)
+[PASS] test_redeemReceipt_partial() (gas: 402951)
+[PASS] test_setMaxProofAge_onlyOwner() (gas: 34183)
+[PASS] test_setMaxProofAge_updates() (gas: 37807)
+[PASS] test_setReceiptToken_onlyOwner() (gas: 35845)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 38.43ms (12.80ms CPU time)
+
+Ran 3 tests for test/integration/FullFlow.t.sol:FullFlowTest
+[PASS] test_full_lifecycle() (gas: 1608016)
+[PASS] test_multiple_targets_from_same_origin() (gas: 4667446)
+[PASS] test_second_attestation_for_same_pair() (gas: 1772389)
+Suite result: ok. 3 passed; 0 failed; 0 skipped; finished in 56.44ms (37.66ms CPU time)
+
+Ran 10 tests for test/unit/CCIPReceiver.t.sol:CCIPReceiverTest
+[PASS] test_receive_deploy_emits_events() (gas: 1471090)
+[PASS] test_receive_deploy_failure_doesnt_revert() (gas: 1591872)
+[PASS] test_receive_deploy_message_deploys_mirror() (gas: 1499152)
+[PASS] test_receive_from_wrong_source_chain() (gas: 82884)
+[PASS] test_receive_replay_reverts() (gas: 1507348)
+[PASS] test_receive_unauthorized_sender_reverts() (gas: 84546)
+[PASS] test_receive_unknown_message_type_reverts() (gas: 67064)
+[PASS] test_receive_wrong_router_reverts() (gas: 77707)
+[PASS] test_setAllowedSender_onlyOwner() (gas: 34284)
+[PASS] test_setAllowedSender_works() (gas: 59109)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 45.65ms (39.29ms CPU time)
+
+Ran 4 tests for test/integration/ZKCollateral.t.sol:ZKCollateralTest
+[PASS] test_emergency_invalidation_flow() (gas: 259925)
+[PASS] test_expired_proof_flow() (gas: 272883)
+[PASS] test_multiple_users_collateral_flow() (gas: 671008)
+[PASS] test_zk_collateral_full_flow() (gas: 472552)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 23.09ms (4.42ms CPU time)
+
+Ran 12 tests for test/unit/CCIPSender.t.sol:CCIPSenderTest
+[PASS] test_estimateFee_receiver_not_set_reverts() (gas: 11264)
+[PASS] test_estimateFee_returns_router_fee() (gas: 21748)
+[PASS] test_sendAttestation_emits_event() (gas: 288682)
+[PASS] test_sendAttestation_insufficient_fee_reverts() (gas: 87924)
+[PASS] test_sendAttestation_receiver_not_set_reverts() (gas: 93628)
+[PASS] test_sendAttestation_refunds_excess() (gas: 316144)
+[PASS] test_sendAttestation_success() (gas: 286270)
+[PASS] test_sendAttestation_unsupported_chain_reverts() (gas: 44855)
+[PASS] test_setReceiver_onlyOwner() (gas: 34079)
+[PASS] test_setReceiver_works() (gas: 41527)
+[PASS] test_setSupportedChain_onlyOwner() (gas: 33763)
+[PASS] test_setSupportedChain_works() (gas: 27830)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 7.75ms (5.58ms CPU time)
+
+Ran 21 tests for test/unit/SignerRegistry.t.sol:SignerRegistryTest
+[PASS] test_getSignerCount() (gas: 7702)
+[PASS] test_getSignerIndex_after_swapAndPop() (gas: 125277)
+[PASS] test_getSignerIndex_not_registered_reverts() (gas: 10940)
+[PASS] test_getSignerIndex_returns_correct_index() (gas: 39983)
+[PASS] test_getSignerSet_after_removal() (gas: 119886)
+[PASS] test_getSignerSet_returns_all_active() (gas: 31845)
+[PASS] test_isActiveSigner() (gas: 15041)
+[PASS] test_registerSigner_duplicate_reverts() (gas: 36574)
+[PASS] test_registerSigner_onlyOwner() (gas: 34682)
+[PASS] test_registerSigner_success() (gas: 135264)
+[PASS] test_registerSigner_zero_address_reverts() (gas: 31995)
+[PASS] test_removeSigner_after_cooldown_succeeds() (gas: 111253)
+[PASS] test_removeSigner_before_cooldown_reverts() (gas: 92592)
+[PASS] test_removeSigner_initiates_cooldown() (gas: 65834)
+[PASS] test_removeSigner_not_registered_reverts() (gas: 34247)
+[PASS] test_removeSigner_swapAndPop_updates_index() (gas: 123447)
+[PASS] test_removeSigner_would_violate_threshold_reverts() (gas: 125137)
+[PASS] test_setThreshold_exceeds_signer_count_reverts() (gas: 34356)
+[PASS] test_setThreshold_onlyOwner() (gas: 34649)
+[PASS] test_setThreshold_success() (gas: 44491)
+[PASS] test_setThreshold_zero_reverts() (gas: 34233)
+Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 7.54ms (5.91ms CPU time)
+
+Ran 24 tests for test/unit/XythumToken.t.sol:XythumTokenTest
+[PASS] test_burn_by_factory() (gas: 123366)
+[PASS] test_burn_by_unauthorized_reverts() (gas: 108625)
+[PASS] test_burn_bypasses_compliance() (gas: 119843)
+[PASS] test_compliance_disabled_allows_any_transfer() (gas: 141862)
+[PASS] test_compliance_toggle_enforcement() (gas: 199784)
+[PASS] test_constructor_sets_immutables() (gas: 16540)
+[PASS] test_decimals() (gas: 5594)
+[PASS] test_factory_is_authorized_minter() (gas: 7879)
+[PASS] test_isCompliant_checks_compliance_contract() (gas: 39205)
+[PASS] test_isCompliant_returns_true_when_disabled() (gas: 10035)
+[PASS] test_mint_by_factory() (gas: 86253)
+[PASS] test_mint_by_unauthorized_reverts() (gas: 37322)
+[PASS] test_mint_bypasses_compliance() (gas: 82850)
+[PASS] test_mint_emits_transfer() (gas: 82885)
+[PASS] test_mint_to_zero_address_reverts() (gas: 32365)
+[PASS] test_name_and_symbol() (gas: 21250)
+[PASS] test_setAuthorizedMinter() (gas: 137820)
+[PASS] test_setAuthorizedMinter_non_factory_reverts() (gas: 33220)
+[PASS] test_setAuthorizedMinter_revoke() (gas: 106898)
+[PASS] test_total_supply_tracks_mint_and_burn() (gas: 191201)
+[PASS] test_transferFrom_checks_compliance() (gas: 171550)
+[PASS] test_transferFrom_compliant_succeeds() (gas: 209341)
+[PASS] test_transfer_compliant_succeeds() (gas: 155847)
+[PASS] test_transfer_non_compliant_reverts() (gas: 116061)
+Suite result: ok. 24 passed; 0 failed; 0 skipped; finished in 14.99ms (12.73ms CPU time)
+
+Ran 10 tests for test/integration/AttackScenarios.t.sol:AttackScenariosTest
+[PASS] test_attack_ccip_message_from_unauthorized_source() (gas: 201137)
+[PASS] test_attack_compliance_bypass_via_intermediate() (gas: 1890607)
+[PASS] test_attack_double_spend_zk_proof() (gas: 1924850)
+[PASS] test_attack_frontrun_mirror_deployment() (gas: 1446372)
+[PASS] test_attack_paused_protocol() (gas: 1532717)
+[PASS] test_attack_replay_attestation() (gas: 1469171)
+[PASS] test_attack_replay_different_chain() (gas: 2863214)
+[PASS] test_attack_signer_collusion_below_threshold() (gas: 84656)
+[PASS] test_attack_stale_nav_exploitation() (gas: 1765151)
+[PASS] test_attack_unauthorized_mint() (gas: 1507111)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 93.07ms (57.62ms CPU time)
+
+Ran 29 tests for test/unit/CanonicalFactory.t.sol:CanonicalFactoryTest
+[PASS] test_admin_functions_onlyOwner() (gas: 107224)
+[PASS] test_computeMirrorAddress_different_for_different_chains() (gas: 90829)
+[PASS] test_computeMirrorAddress_different_for_different_origins() (gas: 90885)
+[PASS] test_computeMirrorAddress_is_deterministic() (gas: 56620)
+[PASS] test_computeMirrorAddress_same_before_and_after_deploy() (gas: 1440464)
+[PASS] test_deployMirror_creates_at_deterministic_address() (gas: 1433978)
+[PASS] test_deployMirror_emits_event() (gas: 1439335)
+[PASS] test_deployMirror_getMirrorInfo() (gas: 1442380)
+[PASS] test_deployMirror_registers_as_canonical() (gas: 1428569)
+[PASS] test_deployMirror_returns_correct_address() (gas: 1425802)
+[PASS] test_deployMirror_reverts_if_already_deployed() (gas: 1500688)
+[PASS] test_deployMirror_reverts_if_attestation_invalid() (gas: 108963)
+[PASS] test_deployMirror_stores_mirrorInfo() (gas: 1439852)
+[PASS] test_deployed_mirror_has_correct_metadata() (gas: 1446834)
+[PASS] test_deploymentFee_collected() (gas: 1533325)
+[PASS] test_deploymentFee_insufficient_reverts() (gas: 136654)
+[PASS] test_deploymentFee_zero_by_default() (gas: 7617)
+[PASS] test_factory_is_authorized_minter_on_mirror() (gas: 1428613)
+[PASS] test_getMirrorInfo_nonexistent_reverts() (gas: 12398)
+[PASS] test_isCanonical_false_for_random_address() (gas: 7913)
+[PASS] test_isCanonical_false_for_same_bytecode_elsewhere() (gas: 1014830)
+[PASS] test_mirrors_mapping_stores_salt() (gas: 1428808)
+[PASS] test_multiple_mirrors_different_targets() (gas: 2856556)
+[PASS] test_pauseMirror() (gas: 1465664)
+[PASS] test_pauseMirror_nonexistent_reverts() (gas: 34345)
+[PASS] test_pause_blocks_deployment() (gas: 124180)
+[PASS] test_setDeploymentFee() (gas: 55247)
+[PASS] test_setTreasury() (gas: 42422)
+[PASS] test_unpause_allows_deployment() (gas: 1500950)
+Suite result: ok. 29 passed; 0 failed; 0 skipped; finished in 115.90ms (110.08ms CPU time)
+
+Ran 4 tests for test/unit/Create2Verification.t.sol:Create2VerificationTest
+[PASS] test_create2_deployed_code_matches() (gas: 1444039)
+[PASS] test_create2_deterministic_across_calls() (gas: 35266)
+[PASS] test_create2_different_deployer_different_address() (gas: 2504141)
+[PASS] test_create2_matches_ethereum_spec() (gas: 1440775)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 15.31ms (10.97ms CPU time)
+
+Ran 13 tests for test/unit/RWAHook.t.sol:RWAHookTest
+[PASS] test_beforeAddLiquidity_compliant_succeeds() (gas: 429957)
+[PASS] test_beforeAddLiquidity_non_compliant_reverts() (gas: 403193)
+[PASS] test_beforeInitialize_canonical_token_succeeds() (gas: 17364)
+[PASS] test_beforeInitialize_non_canonical_reverts() (gas: 1847226)
+[PASS] test_beforeSwap_compliant_user_succeeds() (gas: 523222)
+[PASS] test_beforeSwap_dynamic_fee_aging_nav() (gas: 194294)
+[PASS] test_beforeSwap_dynamic_fee_fresh_nav() (gas: 14773)
+[PASS] test_beforeSwap_dynamic_fee_stale_nav() (gas: 193645)
+[PASS] test_beforeSwap_non_compliant_reverts() (gas: 413611)
+[PASS] test_pausePool_blocks_swaps() (gas: 106774)
+[PASS] test_pausePool_onlyOwner() (gas: 33839)
+[PASS] test_unpausePool_allows_swaps() (gas: 250661)
+[PASS] test_updateNAV_resets_fee() (gas: 46630)
+Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 157.41ms (15.08ms CPU time)
+
+Ran 5 tests for test/integration/LiquidityFlow.t.sol:LiquidityFlowTest
+[PASS] test_bootstrap_creates_correct_pool() (gas: 1637660)
+[PASS] test_bootstrap_rejects_duplicate_pool() (gas: 1647298)
+[PASS] test_bootstrap_rejects_non_canonical() (gas: 37081)
+[PASS] test_deploy_and_trade() (gas: 2712360)
+[PASS] test_stale_nav_increases_cost() (gas: 2870272)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 272.77ms (37.05ms CPU time)
+
+Ran 4 tests for test/invariant/SignerInvariant.t.sol:SignerInvariantTest
+[PASS] invariant_no_duplicate_signers() (runs: 64, calls: 1024, reverts: 0)
+[PASS] invariant_removed_signer_fully_cleaned() (runs: 64, calls: 1024, reverts: 0)
+[PASS] invariant_signerIndex_consistent() (runs: 64, calls: 1024, reverts: 0)
+[PASS] invariant_threshold_lte_signerCount() (runs: 64, calls: 1024, reverts: 0)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 679.00ms (2.11s CPU time)
+
+Ran 16 tests for test/unit/AttestationRegistry.t.sol:AttestationRegistryTest
+[PASS] test_eip712_digest_matches_manual_computation() (gas: 13970)
+[PASS] test_getAttestation_not_found_reverts() (gas: 12318)
+[PASS] test_getAttestation_returns_stored_data() (gas: 369957)
+[PASS] test_getLatestAttestation_updates_on_new() (gas: 676595)
+[PASS] test_isAttested_false_before_verification() (gas: 8123)
+[PASS] test_isAttested_true_after_verification() (gas: 353991)
+[PASS] test_verifyAttestation_all_signers_sign() (gas: 370148)
+[PASS] test_verifyAttestation_different_nonce_succeeds() (gas: 664905)
+[PASS] test_verifyAttestation_duplicate_reverts() (gas: 391966)
+[PASS] test_verifyAttestation_emits_event() (gas: 353685)
+[PASS] test_verifyAttestation_expired_timestamp_reverts() (gas: 73461)
+[PASS] test_verifyAttestation_insufficient_signatures_reverts() (gas: 73658)
+[PASS] test_verifyAttestation_invalid_signature_reverts() (gas: 103136)
+[PASS] test_verifyAttestation_rate_limit_expires() (gas: 664928)
+[PASS] test_verifyAttestation_rate_limited_reverts() (gas: 421417)
+[PASS] test_verifyAttestation_valid_threshold_signatures() (gas: 369889)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 6.77s (87.88ms CPU time)
+
+Ran 4 tests for test/invariant/CanonicalInvariant.t.sol:CanonicalInvariantTest
+[PASS] invariant_computeAddress_matches_deployed() (runs: 64, calls: 1024, reverts: 0)
+[PASS] invariant_isCanonical_iff_deployed() (runs: 64, calls: 1024, reverts: 0)
+[PASS] invariant_mirror_has_correct_origin() (runs: 64, calls: 1024, reverts: 0)
+[PASS] invariant_no_duplicate_mirrors() (runs: 64, calls: 1024, reverts: 0)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 6.79s (22.64s CPU time)
+
+╭-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| lib/v4-core/lib/solmate/src/test/utils/mocks/MockERC20.sol:MockERC20 Contract |                 |       |        |       |         |
++====================================================================================================================================+
+| Deployment Cost                                                               | Deployment Size |       |        |       |         |
+|-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| 866384                                                                        | 4721            |       |        |       |         |
+|-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                                               |                 |       |        |       |         |
+|-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                                                 | Min             | Avg   | Median | Max   | # Calls |
+|-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| approve                                                                       | 46451           | 46462 | 46463  | 46463 | 34      |
+|-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| balanceOf                                                                     | 527             | 1491  | 527    | 2527  | 112     |
+|-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| mint                                                                          | 51167           | 59543 | 51287  | 68387 | 31      |
+╰-------------------------------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| lib/v4-core/src/PoolManager.sol:PoolManager Contract |                 |        |        |        |         |
++=============================================================================================================+
+| Deployment Cost                                      | Deployment Size |        |        |        |         |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 5262914                                              | 24355           |        |        |        |         |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                      |                 |        |        |        |         |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                        | Min             | Avg    | Median | Max    | # Calls |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| extsload                                             | 884             | 3974   | 6884   | 6884   | 33      |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| exttload                                             | 392             | 392    | 392    | 392    | 68      |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| initialize                                           | 37456           | 127459 | 134383 | 134383 | 14      |
+|------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| setProtocolFeeController                             | 47203           | 47203  | 47203  | 47203  | 18      |
+╰------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭-----------------------------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| lib/v4-core/src/test/PoolModifyLiquidityTest.sol:PoolModifyLiquidityTest Contract |                 |        |        |        |         |
++==========================================================================================================================================+
+| Deployment Cost                                                                   | Deployment Size |        |        |        |         |
+|-----------------------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 1438907                                                                           | 6677            |        |        |        |         |
+|-----------------------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                                                   |                 |        |        |        |         |
+|-----------------------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                                                     | Min             | Avg    | Median | Max    | # Calls |
+|-----------------------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| modifyLiquidity                                                                   | 66050           | 290817 | 312626 | 312626 | 17      |
+╰-----------------------------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭-------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| lib/v4-core/src/test/PoolSwapTest.sol:PoolSwapTest Contract |                 |        |        |        |         |
++====================================================================================================================+
+| Deployment Cost                                             | Deployment Size |        |        |        |         |
+|-------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 1554915                                                     | 7207            |        |        |        |         |
+|-------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                             |                 |        |        |        |         |
+|-------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                               | Min             | Avg    | Median | Max    | # Calls |
+|-------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| swap                                                        | 65180           | 144734 | 162846 | 172742 | 10      |
+╰-------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭---------------------------------------------------+-----------------+-------+--------+--------+---------╮
+| src/adapters/AaveAdapter.sol:AaveAdapter Contract |                 |       |        |        |         |
++=========================================================================================================+
+| Deployment Cost                                   | Deployment Size |       |        |        |         |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| 719193                                            | 3364            |       |        |        |         |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+|                                                   |                 |       |        |        |         |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| Function Name                                     | Min             | Avg   | Median | Max    | # Calls |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| depositWithProof                                  | 24025           | 79655 | 100687 | 117787 | 17      |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| maxProofAge                                       | 2351            | 2351  | 2351   | 2351   | 1       |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| redeemReceipt                                     | 34408           | 37271 | 34408  | 42998  | 3       |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| setMaxProofAge                                    | 23665           | 26672 | 26672  | 29679  | 2       |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| setReceiptToken                                   | 23966           | 46227 | 47118  | 47118  | 26      |
+|---------------------------------------------------+-----------------+-------+--------+--------+---------|
+| usedProofs                                        | 2470            | 2470  | 2470   | 2470   | 1       |
+╰---------------------------------------------------+-----------------+-------+--------+--------+---------╯
+
+╭-------------------------------------------------------+-----------------+--------+--------+---------+---------╮
+| src/ccip/CCIPReceiver.sol:XythumCCIPReceiver Contract |                 |        |        |         |         |
++===============================================================================================================+
+| Deployment Cost                                       | Deployment Size |        |        |         |         |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+| 1017507                                               | 4844            |        |        |         |         |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+|                                                       |                 |        |        |         |         |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+| Function Name                                         | Min             | Avg    | Median | Max     | # Calls |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+| allowedSenders                                        | 2711            | 2711   | 2711   | 2711    | 3       |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+| ccipReceive                                           | 29667           | 594218 | 62951  | 1420757 | 10      |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+| processedMessages                                     | 2525            | 2525   | 2525   | 2525    | 5       |
+|-------------------------------------------------------+-----------------+--------+--------+---------+---------|
+| setAllowedSender                                      | 24495           | 45842  | 46737  | 46737   | 25      |
+╰-------------------------------------------------------+-----------------+--------+--------+---------+---------╯
+
+╭---------------------------------------------+-----------------+--------+--------+---------+---------╮
+| src/ccip/CCIPSender.sol:CCIPSender Contract |                 |        |        |         |         |
++=====================================================================================================+
+| Deployment Cost                             | Deployment Size |        |        |         |         |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| 1094672                                     | 5107            |        |        |         |         |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+|                                             |                 |        |        |         |         |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| Function Name                               | Min             | Avg    | Median | Max     | # Calls |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| allowedReceivers                            | 2530            | 2530   | 2530   | 2530    | 1       |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| estimateFee                                 | 2871            | 7258   | 7258   | 11645   | 2       |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| sendAttestation                             | 26520           | 664346 | 116234 | 1504529 | 12      |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| setReceiver                                 | 24329           | 44039  | 46493  | 46493   | 37      |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| setSupportedChain                           | 24036           | 44945  | 46209  | 46209   | 35      |
+|---------------------------------------------+-----------------+--------+--------+---------+---------|
+| supportedChains                             | 2604            | 2604   | 2604   | 2604    | 1       |
+╰---------------------------------------------+-----------------+--------+--------+---------+---------╯
+
+╭---------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| src/core/AttestationRegistry.sol:AttestationRegistry Contract |                 |        |        |        |         |
++======================================================================================================================+
+| Deployment Cost                                               | Deployment Size |        |        |        |         |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 1150684                                                       | 5643            |        |        |        |         |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                               |                 |        |        |        |         |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                                 | Min             | Avg    | Median | Max    | # Calls |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| DOMAIN_SEPARATOR                                              | 206             | 206    | 206    | 206    | 4288    |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getAttestation                                                | 2689            | 12860  | 17946  | 17946  | 3       |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getLatestAttestation                                          | 2785            | 2785   | 2785   | 2785   | 2       |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| isAttested                                                    | 2809            | 2809   | 2809   | 2809   | 2       |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| verifyAttestation                                             | 27397           | 228123 | 308138 | 319483 | 18      |
+╰---------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭---------------------------------------------------------+-----------------+---------+---------+---------+---------╮
+| src/core/CanonicalFactory.sol:CanonicalFactory Contract |                 |         |         |         |         |
++===================================================================================================================+
+| Deployment Cost                                         | Deployment Size |         |         |         |         |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| 2433709                                                 | 11376           |         |         |         |         |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+|                                                         |                 |         |         |         |         |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| Function Name                                           | Min             | Avg     | Median  | Max     | # Calls |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| computeMirrorAddress                                    | 5656            | 5656    | 5656    | 5656    | 39      |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| deployMirror                                            | 29448           | 1380635 | 1382805 | 1419419 | 4251    |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| deploymentFee                                           | 2360            | 2360    | 2360    | 2360    | 2       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| getMirrorInfo                                           | 2758            | 11462   | 15814   | 15814   | 3       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| isCanonical                                             | 589             | 2499    | 2589    | 2589    | 89      |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| mirrorInfoMap                                           | 13254           | 13254   | 13254   | 13254   | 33      |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| mirrors                                                 | 2507            | 2507    | 2507    | 2507    | 1       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| pause                                                   | 23480           | 40978   | 46811   | 46811   | 4       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| pauseMirror                                             | 25968           | 26906   | 26906   | 27845   | 2       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| setDeploymentFee                                        | 23778           | 41318   | 47165   | 47165   | 4       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| setTreasury                                             | 23970           | 27144   | 27144   | 30319   | 2       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| treasury                                                | 2369            | 2369    | 2369    | 2369    | 1       |
+|---------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| unpause                                                 | 23459           | 24397   | 24867   | 24867   | 3       |
+╰---------------------------------------------------------+-----------------+---------+---------+---------+---------╯
+
+╭-----------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| src/core/SignerRegistry.sol:SignerRegistry Contract |                 |        |        |        |         |
++============================================================================================================+
+| Deployment Cost                                     | Deployment Size |        |        |        |         |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 895772                                              | 4065            |        |        |        |         |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                     |                 |        |        |        |         |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                       | Min             | Avg    | Median | Max    | # Calls |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| REMOVAL_COOLDOWN                                    | 228             | 228    | 228    | 228    | 309     |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| acceptOwnership                                     | 28266           | 28266  | 28266  | 28266  | 4       |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getSignerCount                                      | 2347            | 2347   | 2347   | 2347   | 1       |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getSignerIndex                                      | 2566            | 2788   | 2806   | 2806   | 14      |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getSignerSet                                        | 2708            | 10831  | 14042  | 23055  | 7458    |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getThreshold                                        | 2346            | 2346   | 2346   | 2346   | 4272    |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| isActiveSigner                                      | 2555            | 2555   | 2555   | 2555   | 6       |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| isSigner                                            | 2527            | 2527   | 2527   | 2527   | 981     |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| registerSigner                                      | 23700           | 101159 | 97338  | 114438 | 1632    |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| removalTimestamp                                    | 2547            | 2547   | 2547   | 2547   | 1575    |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| removeSigner                                        | 25889           | 48643  | 48248  | 51463  | 609     |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| setThreshold                                        | 23696           | 30489  | 29345  | 32145  | 809     |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| threshold                                           | 2351            | 2351   | 2351   | 2351   | 309     |
+|-----------------------------------------------------+-----------------+--------+--------+--------+---------|
+| transferOwnership                                   | 47721           | 47721  | 47721  | 47721  | 4       |
+╰-----------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭-----------------------------------------------+-----------------+-------+--------+-------+---------╮
+| src/core/XythumToken.sol:XythumToken Contract |                 |       |        |       |         |
++====================================================================================================+
+| Deployment Cost                               | Deployment Size |       |        |       |         |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| 971203                                        | 5040            |       |        |       |         |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                               |                 |       |        |       |         |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                 | Min             | Avg   | Median | Max   | # Calls |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| approve                                       | 46330           | 46612 | 46630  | 46630 | 36      |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| authorizedMinters                             | 2561            | 2561  | 2561   | 2561  | 5       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| balanceOf                                     | 602             | 1764  | 2602   | 2602  | 129     |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| burn                                          | 24262           | 31618 | 36510  | 36522 | 5       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| compliance                                    | 270             | 270   | 270    | 270   | 2       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| decimals                                      | 244             | 244   | 244    | 244   | 1       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| factory                                       | 270             | 270   | 270    | 270   | 3       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| isCompliant                                   | 536             | 6567  | 6111   | 10581 | 29      |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| mint                                          | 24006           | 61388 | 70681  | 70789 | 51      |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| name                                          | 3106            | 3106  | 3106   | 3106  | 4       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| originChainId                                 | 262             | 262   | 262    | 262   | 24      |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| originContract                                | 248             | 248   | 248    | 248   | 26      |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| setAuthorizedMinter                           | 22129           | 42838 | 44281  | 44281 | 46      |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| symbol                                        | 3105            | 3105  | 3105   | 3105  | 4       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| totalSupply                                   | 2381            | 2381  | 2381   | 2381  | 6       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| transfer                                      | 32425           | 45281 | 42078  | 61764 | 8       |
+|-----------------------------------------------+-----------------+-------+--------+-------+---------|
+| transferFrom                                  | 38362           | 53030 | 53030  | 67699 | 2       |
+╰-----------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭--------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| src/hooks/LiquidityBootstrap.sol:LiquidityBootstrap Contract |                 |        |        |        |         |
++=====================================================================================================================+
+| Deployment Cost                                              | Deployment Size |        |        |        |         |
+|--------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 657746                                                       | 3163            |        |        |        |         |
+|--------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                              |                 |        |        |        |         |
+|--------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                                | Min             | Avg    | Median | Max    | # Calls |
+|--------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| createPool                                                   | 27320           | 133819 | 186507 | 186532 | 6       |
+|--------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getPool                                                      | 2498            | 2498   | 2498   | 2498   | 1       |
+|--------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| hasPool                                                      | 2494            | 2494   | 2494   | 2494   | 2       |
+╰--------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭----------------------------------------+-----------------+-------+--------+-------+---------╮
+| src/hooks/RWAHook.sol:RWAHook Contract |                 |       |        |       |         |
++=============================================================================================+
+| Deployment Cost                        | Deployment Size |       |        |       |         |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+| 1162781                                | 6737            |       |        |       |         |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+|                                        |                 |       |        |       |         |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                          | Min             | Avg   | Median | Max   | # Calls |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+| pausePool                              | 21927           | 23055 | 23619  | 23619 | 3       |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+| poolConfigs                            | 6870            | 6870  | 6870   | 6870  | 9       |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+| unpausePool                            | 45527           | 45527 | 45527  | 45527 | 1       |
+|----------------------------------------+-----------------+-------+--------+-------+---------|
+| updateNAV                              | 28408           | 28408 | 28408  | 28408 | 2       |
+╰----------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭-----------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| src/zk/CollateralVerifier.sol:CollateralVerifier Contract |                 |        |        |        |         |
++==================================================================================================================+
+| Deployment Cost                                           | Deployment Size |        |        |        |         |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 983317                                                    | 4577            |        |        |        |         |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                           |                 |        |        |        |         |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                             | Min             | Avg    | Median | Max    | # Calls |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| assetAddresses                                            | 2495            | 2495   | 2495   | 2495   | 2       |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| assetIds                                                  | 2548            | 2548   | 2548   | 2548   | 1       |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getCollateralValue                                        | 6805            | 6805   | 6805   | 6805   | 20      |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| invalidateProof                                           | 24023           | 25406  | 25593  | 26230  | 5       |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| isProofActive                                             | 2487            | 2487   | 2487   | 2487   | 5       |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| registerAsset                                             | 24176           | 68707  | 70022  | 70034  | 35      |
+|-----------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| verifyCollateralProof                                     | 23830           | 184229 | 216999 | 216999 | 29      |
+╰-----------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭---------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| test/helpers/AttestationHelper.sol:AttestationHelper Contract |                 |        |        |        |         |
++======================================================================================================================+
+| Deployment Cost                                               | Deployment Size |        |        |        |         |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 1616541                                                       | 7099            |        |        |        |         |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                               |                 |        |        |        |         |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                                 | Min             | Avg    | Median | Max    | # Calls |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| buildAttestation                                              | 1380            | 1380   | 1380   | 1380   | 4290    |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| generateSigners                                               | 294084          | 294084 | 294084 | 294084 | 109     |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| getSignerAddress                                              | 4635            | 4635   | 4635   | 4635   | 545     |
+|---------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| signAttestation                                               | 10332           | 17918  | 17920  | 25561  | 4287    |
+╰---------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+╭---------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/helpers/MockCCIPRouter.sol:MockCCIPRouter Contract |                 |       |        |       |         |
++==============================================================================================================+
+| Deployment Cost                                         | Deployment Size |       |        |       |         |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| 734159                                                  | 3016            |       |        |       |         |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                         |                 |       |        |       |         |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                           | Min             | Avg   | Median | Max   | # Calls |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| fixedFee                                                | 2306            | 2306  | 2306   | 2306  | 1       |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| getFee                                                  | 4349            | 4446  | 4471   | 4471  | 11      |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setFixedFee                                             | 21648           | 23631 | 23708  | 26520 | 17      |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setReceiver                                             | 27154           | 42794 | 44266  | 44266 | 35      |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setSourceChainSelector                                  | 23851           | 23851 | 23851  | 23851 | 23      |
+╰---------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭----------------------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/helpers/MockCollateralVerifier.sol:MockGroth16Verifier Contract |                 |       |        |       |         |
++===========================================================================================================================+
+| Deployment Cost                                                      | Deployment Size |       |        |       |         |
+|----------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| 163542                                                               | 447             |       |        |       |         |
+|----------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                                      |                 |       |        |       |         |
+|----------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                                        | Min             | Avg   | Median | Max   | # Calls |
+|----------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setShouldAccept                                                      | 21690           | 21690 | 21690  | 21690 | 1       |
+|----------------------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| verifyProof                                                          | 2732            | 2732  | 2732   | 2732  | 25      |
+╰----------------------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭---------------------------------------------------------+-----------------+-------+--------+-------+---------╮
+| test/helpers/MockCompliance.sol:MockCompliance Contract |                 |       |        |       |         |
++==============================================================================================================+
+| Deployment Cost                                         | Deployment Size |       |        |       |         |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| 249484                                                  | 844             |       |        |       |         |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+|                                                         |                 |       |        |       |         |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| Function Name                                           | Min             | Avg   | Median | Max   | # Calls |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| isTransferCompliant                                     | 636             | 2890  | 2636   | 7106  | 61      |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setEnforceCompliance                                    | 21726           | 24697 | 21726  | 43638 | 59      |
+|---------------------------------------------------------+-----------------+-------+--------+-------+---------|
+| setWhitelisted                                          | 44157           | 44157 | 44157  | 44157 | 58      |
+╰---------------------------------------------------------+-----------------+-------+--------+-------+---------╯
+
+╭--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------╮
+| test/invariant/CanonicalInvariant.t.sol:CanonicalFactoryHandler Contract |                 |         |         |         |         |
++====================================================================================================================================+
+| Deployment Cost                                                          | Deployment Size |         |         |         |         |
+|--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| 1771241                                                                  | 7788            |         |         |         |         |
+|--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+|                                                                          |                 |         |         |         |         |
+|--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| Function Name                                                            | Min             | Avg     | Median  | Max     | # Calls |
+|--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| deployMirror                                                             | 1689456         | 1691719 | 1689552 | 1723944 | 4160    |
+|--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| deployedMirrors                                                          | 4653            | 4653    | 4653    | 4653    | 288     |
+|--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------|
+| mirrorCount                                                              | 2381            | 2381    | 2381    | 2381    | 4       |
+╰--------------------------------------------------------------------------+-----------------+---------+---------+---------+---------╯
+
+╭---------------------------------------------------------------------+-----------------+--------+--------+--------+---------╮
+| test/invariant/SignerInvariant.t.sol:SignerRegistryHandler Contract |                 |        |        |        |         |
++============================================================================================================================+
+| Deployment Cost                                                     | Deployment Size |        |        |        |         |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| 1815155                                                             | 8060            |        |        |        |         |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+|                                                                     |                 |        |        |        |         |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| Function Name                                                       | Min             | Avg    | Median | Max    | # Calls |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| allRegistered                                                       | 4623            | 4623   | 4623   | 4623   | 5       |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| allRegisteredCount                                                  | 2380            | 2380   | 2380   | 2380   | 1       |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| completeRemoval                                                     | 8360            | 27330  | 19371  | 96053  | 1048    |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| initiateRemoval                                                     | 8338            | 38586  | 21602  | 84644  | 1058    |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| registerSigner                                                      | 8049            | 166089 | 157212 | 192119 | 979     |
+|---------------------------------------------------------------------+-----------------+--------+--------+--------+---------|
+| setThreshold                                                        | 8338            | 37631  | 43378  | 65708  | 1075    |
+╰---------------------------------------------------------------------+-----------------+--------+--------+--------+---------╯
+
+
+Ran 16 test suites in 9.26s (15.09s CPU time): 185 tests passed, 0 failed, 0 skipped (185 total tests)

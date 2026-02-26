@@ -1,0 +1,30 @@
+# Foundry
+out/
+cache/
+broadcast/
+
+# Environment
+.env
+.env.local
+
+# Dependencies
+lib/
+node_modules/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# ZK build artifacts (regenerate with circom + snarkjs)
+src/zk/build/*.ptau
+src/zk/build/*.r1cs
+src/zk/build/*.wasm
+src/zk/build/*_js/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
