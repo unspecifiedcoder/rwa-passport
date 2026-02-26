@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {ICanonicalFactory} from "../src/interfaces/ICanonicalFactory.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { ICanonicalFactory } from "../src/interfaces/ICanonicalFactory.sol";
 
 /// @title VerifyCanonical
 /// @notice Verify that an address is a canonical Xythum mirror token.

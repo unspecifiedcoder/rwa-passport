@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SignerRegistry} from "../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {CollateralVerifier} from "../src/zk/CollateralVerifier.sol";
-import {AaveAdapter} from "../src/adapters/AaveAdapter.sol";
-import {LiquidityBootstrap} from "../src/hooks/LiquidityBootstrap.sol";
-import {RWAHook} from "../src/hooks/RWAHook.sol";
-import {XythumCCIPReceiver} from "../src/ccip/CCIPReceiver.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
-import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
-import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { SignerRegistry } from "../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { CollateralVerifier } from "../src/zk/CollateralVerifier.sol";
+import { AaveAdapter } from "../src/adapters/AaveAdapter.sol";
+import { LiquidityBootstrap } from "../src/hooks/LiquidityBootstrap.sol";
+import { RWAHook } from "../src/hooks/RWAHook.sol";
+import { XythumCCIPReceiver } from "../src/ccip/CCIPReceiver.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
+import { IPoolManager } from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import { Hooks } from "@uniswap/v4-core/src/libraries/Hooks.sol";
+import { IHooks } from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 
 /// @title DeployXythum
 /// @notice Full protocol deployment script for one chain
@@ -52,15 +52,15 @@ contract DeployXythum is Script {
         // ── 2. AttestationRegistry ──
         AttestationRegistry attReg = new AttestationRegistry(
             address(signerReg),
-            24 hours,   // maxStaleness
-            1 hours     // rateLimitPeriod
+            24 hours, // maxStaleness
+            1 hours // rateLimitPeriod
         );
         console.log("AttestationRegistry:", address(attReg));
 
         // ── 3. CanonicalFactory ──
         CanonicalFactory factory = new CanonicalFactory(
             address(attReg),
-            compliance,    // address(0) disables compliance for MVP
+            compliance, // address(0) disables compliance for MVP
             treasury,
             vm.addr(deployerKey)
         );
@@ -85,11 +85,8 @@ contract DeployXythum is Script {
 
         // ── 6. CCIPReceiver (target chain only) ──
         if (ccipRouter != address(0)) {
-            XythumCCIPReceiver ccipReceiver = new XythumCCIPReceiver(
-                ccipRouter,
-                address(factory),
-                vm.addr(deployerKey)
-            );
+            XythumCCIPReceiver ccipReceiver =
+                new XythumCCIPReceiver(ccipRouter, address(factory), vm.addr(deployerKey));
             console.log("CCIPReceiver:", address(ccipReceiver));
         } else {
             console.log("CCIPReceiver: SKIPPED (no CCIP_ROUTER set)");

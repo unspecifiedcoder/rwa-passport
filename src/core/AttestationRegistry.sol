@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IAttestationVerifier} from "../interfaces/IAttestationVerifier.sol";
-import {ISignerRegistry} from "../interfaces/ISignerRegistry.sol";
-import {AttestationLib} from "../libraries/AttestationLib.sol";
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import { IAttestationVerifier } from "../interfaces/IAttestationVerifier.sol";
+import { ISignerRegistry } from "../interfaces/ISignerRegistry.sol";
+import { AttestationLib } from "../libraries/AttestationLib.sol";
+import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /// @title AttestationRegistry
 /// @author Xythum Protocol
@@ -50,11 +50,7 @@ contract AttestationRegistry is IAttestationVerifier {
     /// @param _signerRegistry Address of the signer registry contract
     /// @param _maxStaleness Maximum attestation age in seconds (e.g. 24 hours)
     /// @param _rateLimitPeriod Minimum time between attestations per pair (e.g. 1 hour)
-    constructor(
-        address _signerRegistry,
-        uint256 _maxStaleness,
-        uint256 _rateLimitPeriod
-    ) {
+    constructor(address _signerRegistry, uint256 _maxStaleness, uint256 _rateLimitPeriod) {
         signerRegistry = ISignerRegistry(_signerRegistry);
         maxStaleness = _maxStaleness;
         rateLimitPeriod = _rateLimitPeriod;
@@ -95,7 +91,9 @@ contract AttestationRegistry is IAttestationVerifier {
 
     /// @inheritdoc IAttestationVerifier
     function getAttestation(bytes32 attestationId_)
-        external view returns (AttestationLib.Attestation memory)
+        external
+        view
+        returns (AttestationLib.Attestation memory)
     {
         AttestationLib.Attestation storage att = _attestations[attestationId_];
         if (att.timestamp == 0) revert AttestationNotFound(attestationId_);
@@ -103,11 +101,11 @@ contract AttestationRegistry is IAttestationVerifier {
     }
 
     /// @inheritdoc IAttestationVerifier
-    function isAttested(
-        address originContract,
-        uint256 originChainId,
-        uint256 targetChainId
-    ) external view returns (bool) {
+    function isAttested(address originContract, uint256 originChainId, uint256 targetChainId)
+        external
+        view
+        returns (bool)
+    {
         bytes32 _pairKey = AttestationLib.pairKey(originContract, originChainId, targetChainId);
         return latestAttestation[_pairKey] != bytes32(0);
     }
@@ -153,11 +151,11 @@ contract AttestationRegistry is IAttestationVerifier {
 
     /// @notice Check rate limit for an origin/target pair
     /// @return _pairKey The computed pair key
-    function _checkRateLimit(
-        address originContract,
-        uint256 originChainId,
-        uint256 targetChainId
-    ) internal view returns (bytes32 _pairKey) {
+    function _checkRateLimit(address originContract, uint256 originChainId, uint256 targetChainId)
+        internal
+        view
+        returns (bytes32 _pairKey)
+    {
         _pairKey = AttestationLib.pairKey(originContract, originChainId, targetChainId);
         uint256 lastTime = lastAttestationTime[_pairKey];
         if (lastTime != 0 && block.timestamp < lastTime + rateLimitPeriod) {
@@ -211,11 +209,7 @@ contract AttestationRegistry is IAttestationVerifier {
         lastAttestationTime[_pairKey] = block.timestamp;
 
         emit AttestationVerified(
-            attId,
-            att.originContract,
-            att.originChainId,
-            att.targetChainId,
-            att.timestamp
+            attId, att.originContract, att.originChainId, att.targetChainId, att.timestamp
         );
     }
 

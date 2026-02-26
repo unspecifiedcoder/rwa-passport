@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {XythumCCIPReceiver} from "../src/ccip/CCIPReceiver.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { XythumCCIPReceiver } from "../src/ccip/CCIPReceiver.sol";
 
 /// @title DeployTargetFuji
 /// @notice Deploys target-chain contracts on Avalanche Fuji (for reverse direction: BNB → Fuji)
@@ -30,18 +30,15 @@ contract DeployTargetFuji is Script {
         //    compliance = address(0) for demo, treasury = deployer
         CanonicalFactory factory = new CanonicalFactory(
             attRegFuji,
-            address(0),     // no compliance contract for demo
-            deployer,       // treasury
-            deployer        // owner
+            address(0), // no compliance contract for demo
+            deployer, // treasury
+            deployer // owner
         );
         console.log("CanonicalFactory (Fuji):", address(factory));
 
         // 2. Deploy CCIPReceiver
-        XythumCCIPReceiver ccipReceiver = new XythumCCIPReceiver(
-            ccipRouter,
-            address(factory),
-            deployer
-        );
+        XythumCCIPReceiver ccipReceiver =
+            new XythumCCIPReceiver(ccipRouter, address(factory), deployer);
         console.log("CCIPReceiver (Fuji):", address(ccipReceiver));
 
         vm.stopBroadcast();

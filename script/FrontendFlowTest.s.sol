@@ -2,11 +2,11 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {AttestationRegistry} from "../src/core/AttestationRegistry.sol";
-import {SignerRegistry} from "../src/core/SignerRegistry.sol";
-import {XythumToken} from "../src/core/XythumToken.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
+import { SignerRegistry } from "../src/core/SignerRegistry.sol";
+import { XythumToken } from "../src/core/XythumToken.sol";
 
 /// @title FrontendFlowTest
 /// @notice Comprehensive end-to-end test of all flows the frontend triggers.
@@ -36,25 +36,25 @@ abstract contract TestBase is Script {
     uint256 constant SIGNER_KEY_5 = uint256(keccak256("xythum-demo-signer-5"));
 
     // ── BNB Testnet contracts ──
-    address constant BNB_FACTORY    = 0x99AB8C07C0082CBdD0306B30BC52eA15e6dB2521;
-    address constant BNB_ATT_REG    = 0xe27E5e2D924F6e42ffa90C6bE817AA030dE6f48D;
+    address constant BNB_FACTORY = 0x99AB8C07C0082CBdD0306B30BC52eA15e6dB2521;
+    address constant BNB_ATT_REG = 0xe27E5e2D924F6e42ffa90C6bE817AA030dE6f48D;
     address constant BNB_SIGNER_REG = 0xFA6aFAcfAA866Cf54aCCa0E23883a1597574206c;
     address constant BNB_CCIP_SENDER = 0x3823baE274eB188D3dF66D8bc4eAAaf0F050dAD6;
-    address constant BNB_CCIP_RECV  = 0xDc1f35F18607c8ee5a823b1ebBc5eDFe0fb253F3;
-    address constant BNB_MOCK_RWA   = 0x31004d16339C54f49FDb0dE061846268eE59B4af;
-    address constant BNB_MIRROR     = 0xD8885030b36DDDf303A8F6Eb3A78A5609432f209;
+    address constant BNB_CCIP_RECV = 0xDc1f35F18607c8ee5a823b1ebBc5eDFe0fb253F3;
+    address constant BNB_MOCK_RWA = 0x31004d16339C54f49FDb0dE061846268eE59B4af;
+    address constant BNB_MIRROR = 0xD8885030b36DDDf303A8F6Eb3A78A5609432f209;
 
     // ── Fuji contracts ──
-    address constant FUJI_FACTORY    = 0x4934985287C28e647ecF38d485E448ac4A4A4Ab7;
-    address constant FUJI_ATT_REG    = 0xd0047E6F5281Ed7d04f2eAea216cB771b80f7104;
+    address constant FUJI_FACTORY = 0x4934985287C28e647ecF38d485E448ac4A4A4Ab7;
+    address constant FUJI_ATT_REG = 0xd0047E6F5281Ed7d04f2eAea216cB771b80f7104;
     address constant FUJI_SIGNER_REG = 0xF17BBD22D1d3De885d02E01805C01C0e43E64A2F;
     address constant FUJI_CCIP_SENDER = 0x1062C2fBebd13862d4D503430E3E1A81907c2bD7;
-    address constant FUJI_CCIP_RECV  = 0xC740E9D56c126eb447f84404dDd9dffbB7AEd5F8;
-    address constant FUJI_MOCK_RWA   = 0xD52b37AD931F221A902fC7F43A9ed2D87Ce07C5F;
-    address constant FUJI_MIRROR     = 0x50Cef4543E676089F9C1D66851F1F6bAb269CEfC;
+    address constant FUJI_CCIP_RECV = 0xC740E9D56c126eb447f84404dDd9dffbB7AEd5F8;
+    address constant FUJI_MOCK_RWA = 0xD52b37AD931F221A902fC7F43A9ed2D87Ce07C5F;
+    address constant FUJI_MIRROR = 0x50Cef4543E676089F9C1D66851F1F6bAb269CEfC;
 
     uint256 constant FUJI_CHAIN_ID = 43113;
-    uint256 constant BNB_CHAIN_ID  = 97;
+    uint256 constant BNB_CHAIN_ID = 97;
 
     function _signAttestation(
         AttestationLib.Attestation memory att,
@@ -73,10 +73,11 @@ abstract contract TestBase is Script {
         signatures = sigs;
     }
 
-    function _sign3of5(
-        AttestationLib.Attestation memory att,
-        address attRegistry
-    ) internal view returns (bytes memory signatures, uint256 bitmap) {
+    function _sign3of5(AttestationLib.Attestation memory att, address attRegistry)
+        internal
+        view
+        returns (bytes memory signatures, uint256 bitmap)
+    {
         uint256[] memory keys = new uint256[](3);
         keys[0] = SIGNER_KEY_1;
         keys[1] = SIGNER_KEY_2;
@@ -84,10 +85,11 @@ abstract contract TestBase is Script {
         return _signAttestation(att, attRegistry, keys);
     }
 
-    function _sign2of5(
-        AttestationLib.Attestation memory att,
-        address attRegistry
-    ) internal view returns (bytes memory signatures, uint256 bitmap) {
+    function _sign2of5(AttestationLib.Attestation memory att, address attRegistry)
+        internal
+        view
+        returns (bytes memory signatures, uint256 bitmap)
+    {
         uint256[] memory keys = new uint256[](2);
         keys[0] = SIGNER_KEY_1;
         keys[1] = SIGNER_KEY_2;
@@ -187,10 +189,11 @@ contract TestBnbCorrectFlows is TestBase {
 
         // Verify signer addresses match demo keys
         address expected0 = vm.addr(SIGNER_KEY_1);
-        if (signers.length >= 1 && signers[0] == expected0)
+        if (signers.length >= 1 && signers[0] == expected0) {
             _pass("signer[0] matches demo key 1");
-        else
+        } else {
             _fail("signer[0]", "mismatch with demo key");
+        }
 
         console.log("    Signer addresses:");
         for (uint256 i = 0; i < signers.length; i++) {
@@ -206,22 +209,25 @@ contract TestBnbCorrectFlows is TestBase {
         else _fail("getMirrorCount()", "expected >= 1");
 
         address[] memory all = factory.getAllMirrors();
-        if (all.length == count)
+        if (all.length == count) {
             _pass("getAllMirrors().length matches getMirrorCount()");
-        else
+        } else {
             _fail("getAllMirrors()", "length mismatch");
+        }
 
-        if (all.length > 0 && all[0] == BNB_MIRROR)
+        if (all.length > 0 && all[0] == BNB_MIRROR) {
             _pass("getAllMirrors()[0] = deployed mirror");
-        else
+        } else {
             _fail("getAllMirrors()[0]", "mismatch");
+        }
 
         // Pagination test
         address[] memory page = factory.getMirrors(0, 1);
-        if (page.length == 1 && page[0] == BNB_MIRROR)
+        if (page.length == 1 && page[0] == BNB_MIRROR) {
             _pass("getMirrors(0, 1) returns first mirror");
-        else
+        } else {
             _fail("getMirrors(0,1)", "mismatch");
+        }
     }
 
     function _testComputeMirrorAddress() internal view {
@@ -236,13 +242,13 @@ contract TestBnbCorrectFlows is TestBase {
             complianceRoot: keccak256("compliance-placeholder"),
             lockedAmount: 1_000_000 ether,
             timestamp: block.timestamp, // doesn't affect address
-            nonce: 1                    // doesn't affect address
-        });
+            nonce: 1 // doesn't affect address
+         });
 
         address computed = factory.computeMirrorAddress(att);
-        if (computed == BNB_MIRROR)
+        if (computed == BNB_MIRROR) {
             _pass("computeMirrorAddress() matches deployed mirror");
-        else {
+        } else {
             _fail("computeMirrorAddress()", "mismatch");
             console.log("    Expected:", BNB_MIRROR);
             console.log("    Got:     ", computed);
@@ -334,9 +340,11 @@ contract TestFujiCorrectFlows is TestBase {
         else _fail("getMirrorCount()", "expected >= 1");
 
         address[] memory all = factory.getAllMirrors();
-        if (all.length > 0 && all[0] == FUJI_MIRROR)
+        if (all.length > 0 && all[0] == FUJI_MIRROR) {
             _pass("getAllMirrors()[0] = deployed Fuji mirror");
-        else _fail("getAllMirrors()[0]", "mismatch");
+        } else {
+            _fail("getAllMirrors()[0]", "mismatch");
+        }
     }
 
     function _testComputeMirrorAddress() internal view {
@@ -352,9 +360,9 @@ contract TestFujiCorrectFlows is TestBase {
             nonce: 1
         });
         address computed = factory.computeMirrorAddress(att);
-        if (computed == FUJI_MIRROR)
+        if (computed == FUJI_MIRROR) {
             _pass("computeMirrorAddress() matches Fuji mirror");
-        else {
+        } else {
             _fail("computeMirrorAddress()", "mismatch");
             console.log("    Expected:", FUJI_MIRROR);
             console.log("    Got:     ", computed);
@@ -401,8 +409,8 @@ contract TestBnbBadFlows is TestBase {
             complianceRoot: keccak256("compliance-placeholder"),
             lockedAmount: 1_000_000 ether,
             timestamp: block.timestamp,
-            nonce: 1  // Already used!
-        });
+            nonce: 1 // Already used!
+         });
 
         (bytes memory sigs, uint256 bitmap) = _sign3of5(att, BNB_ATT_REG);
 
@@ -422,7 +430,7 @@ contract TestBnbBadFlows is TestBase {
         AttestationLib.Attestation memory att = AttestationLib.Attestation({
             originContract: FUJI_MOCK_RWA,
             originChainId: FUJI_CHAIN_ID,
-            targetChainId: FUJI_CHAIN_ID,  // Wrong! Should be BNB_CHAIN_ID
+            targetChainId: FUJI_CHAIN_ID, // Wrong! Should be BNB_CHAIN_ID
             navRoot: keccak256("nav"),
             complianceRoot: keccak256("comp"),
             lockedAmount: 1_000_000 ether,
@@ -485,7 +493,7 @@ contract TestBnbBadFlows is TestBase {
             navRoot: keccak256("nav-stale"),
             complianceRoot: keccak256("comp-stale"),
             lockedAmount: 1_000_000 ether,
-            timestamp: 1000,  // Way in the past (year 1970)
+            timestamp: 1000, // Way in the past (year 1970)
             nonce: 1
         });
 
@@ -525,7 +533,8 @@ contract TestNewDirectDeploy is TestBase {
         CanonicalFactory factory = CanonicalFactory(BNB_FACTORY);
 
         // Use a random "origin" address to simulate a new RWA deployment
-        address newOrigin = address(uint160(uint256(keccak256(abi.encode(block.timestamp, "test-origin-v2")))));
+        address newOrigin =
+            address(uint160(uint256(keccak256(abi.encode(block.timestamp, "test-origin-v2")))));
         console.log("New origin address:", newOrigin);
 
         AttestationLib.Attestation memory att = AttestationLib.Attestation({
@@ -595,7 +604,7 @@ contract TestNewDirectDeploy is TestBase {
 contract TestCCIPConfig is TestBase {
     // CCIP chain selectors
     uint64 constant FUJI_SELECTOR = 14767482510784806043;
-    uint64 constant BNB_SELECTOR  = 13264668187771770619;
+    uint64 constant BNB_SELECTOR = 13264668187771770619;
 
     function run() external view {
         console.log("=== CCIP CONFIGURATION TEST ===");

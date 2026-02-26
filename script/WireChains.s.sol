@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
-import {XythumCCIPReceiver} from "../src/ccip/CCIPReceiver.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
+import { XythumCCIPReceiver } from "../src/ccip/CCIPReceiver.sol";
 
 /// @title WireChains
 /// @notice Wires cross-chain connections between Fuji CCIPSender and BNB CCIPReceiver

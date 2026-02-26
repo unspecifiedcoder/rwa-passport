@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {ICanonicalFactory} from "../../src/interfaces/ICanonicalFactory.sol";
-import {TestConstants} from "../helpers/TestConstants.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { ICanonicalFactory } from "../../src/interfaces/ICanonicalFactory.sol";
+import { TestConstants } from "../helpers/TestConstants.sol";
 
 /// @title CanonicalFactoryTest
 /// @notice Unit tests for CanonicalFactory — deterministic CREATE2 mirror deployment
@@ -53,22 +53,15 @@ contract CanonicalFactoryTest is Test {
         }
 
         // 4. Deploy attestation registry
-        attestationRegistry = new AttestationRegistry(
-            address(signerRegistry),
-            MAX_STALENESS,
-            RATE_LIMIT
-        );
+        attestationRegistry =
+            new AttestationRegistry(address(signerRegistry), MAX_STALENESS, RATE_LIMIT);
 
         // 5. Deploy compliance
         compliance = new MockCompliance();
 
         // 6. Deploy factory
-        factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            treasury,
-            owner
-        );
+        factory =
+            new CanonicalFactory(address(attestationRegistry), address(compliance), treasury, owner);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────
@@ -79,11 +72,11 @@ contract CanonicalFactoryTest is Test {
         uint256 originChainId,
         uint256 targetChainId,
         uint256 nonce
-    ) internal view returns (
-        AttestationLib.Attestation memory att,
-        bytes memory signatures,
-        uint256 bitmap
-    ) {
+    )
+        internal
+        view
+        returns (AttestationLib.Attestation memory att, bytes memory signatures, uint256 bitmap)
+    {
         att = helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
 
         // Sign with first THRESHOLD signers (indices 0,1,2)
@@ -103,11 +96,8 @@ contract CanonicalFactoryTest is Test {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(originContract, originChainId, targetChainId, nonce);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(originContract, originChainId, targetChainId, nonce);
 
         mirror = factory.deployMirror(att, sigs, bitmap);
     }
@@ -294,7 +284,7 @@ contract CanonicalFactoryTest is Test {
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
             _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
 
-        factory.deployMirror{value: 0.01 ether}(att, sigs, bitmap);
+        factory.deployMirror{ value: 0.01 ether }(att, sigs, bitmap);
 
         assertEq(treasury.balance - treasuryBefore, 0.01 ether, "Treasury should receive fee");
     }
@@ -307,9 +297,11 @@ contract CanonicalFactoryTest is Test {
             _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
 
         vm.expectRevert(
-            abi.encodeWithSelector(CanonicalFactory.InsufficientFee.selector, 0.005 ether, 0.01 ether)
+            abi.encodeWithSelector(
+                CanonicalFactory.InsufficientFee.selector, 0.005 ether, 0.01 ether
+            )
         );
-        factory.deployMirror{value: 0.005 ether}(att, sigs, bitmap);
+        factory.deployMirror{ value: 0.005 ether }(att, sigs, bitmap);
     }
 
     function test_deploymentFee_zero_by_default() public view {
@@ -441,15 +433,11 @@ contract CanonicalFactoryTest is Test {
     // ─── Direct Path Tests ───────────────────────────────────────────
 
     /// @notice Build and sign an attestation targeting block.chainid (for direct path)
-    function _buildDirectAttestation(
-        address originContract,
-        uint256 originChainId,
-        uint256 nonce
-    ) internal view returns (
-        AttestationLib.Attestation memory att,
-        bytes memory signatures,
-        uint256 bitmap
-    ) {
+    function _buildDirectAttestation(address originContract, uint256 originChainId, uint256 nonce)
+        internal
+        view
+        returns (AttestationLib.Attestation memory att, bytes memory signatures, uint256 bitmap)
+    {
         // Direct path uses block.chainid as targetChainId
         att = helper.buildAttestation(originContract, originChainId, block.chainid, nonce);
 
@@ -463,11 +451,8 @@ contract CanonicalFactoryTest is Test {
     }
 
     function test_deployMirrorDirect_succeeds() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         address predicted = factory.computeMirrorAddress(att);
         address mirror = factory.deployMirrorDirect(att, sigs, bitmap);
@@ -480,9 +465,8 @@ contract CanonicalFactoryTest is Test {
 
     function test_deployMirrorDirect_wrong_chain_reverts() public {
         // Build attestation with a non-matching targetChainId
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            ORIGIN_CONTRACT, ORIGIN_CHAIN, 999, 1
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 999, 1);
 
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
         for (uint256 i = 0; i < THRESHOLD; i++) {
@@ -492,20 +476,15 @@ contract CanonicalFactoryTest is Test {
         (bytes memory sigs, uint256 bitmap) = helper.signAttestation(att, domainSep, signerIndices);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CanonicalFactory.WrongTargetChain.selector, 999, block.chainid
-            )
+            abi.encodeWithSelector(CanonicalFactory.WrongTargetChain.selector, 999, block.chainid)
         );
         factory.deployMirrorDirect(att, sigs, bitmap);
     }
 
     function test_deployMirrorDirect_same_result_as_ccip_path() public {
         // Compute the expected address
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         address expected = factory.computeMirrorAddress(att);
         address mirror = factory.deployMirrorDirect(att, sigs, bitmap);
@@ -514,31 +493,24 @@ contract CanonicalFactoryTest is Test {
     }
 
     function test_deployMirrorDirect_duplicate_reverts() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         factory.deployMirrorDirect(att, sigs, bitmap);
 
         // Warp past rate limit, build new attestation with different nonce (same origin/target pair)
         vm.warp(block.timestamp + RATE_LIMIT + 1);
 
-        (
-            AttestationLib.Attestation memory att2,
-            bytes memory sigs2,
-            uint256 bitmap2
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 2);
+        (AttestationLib.Attestation memory att2, bytes memory sigs2, uint256 bitmap2) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 2);
 
         vm.expectRevert(); // MirrorAlreadyDeployed
         factory.deployMirrorDirect(att2, sigs2, bitmap2);
     }
 
     function test_deployMirrorDirect_insufficient_sigs_reverts() public {
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid, 1
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid, 1);
 
         // Sign with only 2 signers (below threshold of 3)
         uint256[] memory indices = new uint256[](2);
@@ -552,11 +524,8 @@ contract CanonicalFactoryTest is Test {
     }
 
     function test_deployMirrorDirect_permissionless() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         // Call from a random address (not owner, not signer)
         address randomCaller = makeAddr("randomCaller");
@@ -568,22 +537,16 @@ contract CanonicalFactoryTest is Test {
 
     function test_ccip_and_direct_share_state() public {
         // Deploy via direct path first
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         factory.deployMirrorDirect(att, sigs, bitmap);
 
         // Warp past rate limit, try deploying same origin/target via CCIP path (deployMirror)
         vm.warp(block.timestamp + RATE_LIMIT + 1);
 
-        (
-            AttestationLib.Attestation memory att2,
-            bytes memory sigs2,
-            uint256 bitmap2
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 2);
+        (AttestationLib.Attestation memory att2, bytes memory sigs2, uint256 bitmap2) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 2);
 
         vm.expectRevert(); // MirrorAlreadyDeployed — same salt
         factory.deployMirror(att2, sigs2, bitmap2);
@@ -591,21 +554,15 @@ contract CanonicalFactoryTest is Test {
 
     function test_direct_and_ccip_different_origins_coexist() public {
         // Deploy origin A via direct path
-        (
-            AttestationLib.Attestation memory attA,
-            bytes memory sigsA,
-            uint256 bitmapA
-        ) = _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory attA, bytes memory sigsA, uint256 bitmapA) =
+            _buildDirectAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         address mirrorA = factory.deployMirrorDirect(attA, sigsA, bitmapA);
 
         // Deploy origin B via CCIP path (deployMirror)
         address originB = address(0xBBB);
-        (
-            AttestationLib.Attestation memory attB,
-            bytes memory sigsB,
-            uint256 bitmapB
-        ) = _buildDirectAttestation(originB, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory attB, bytes memory sigsB, uint256 bitmapB) =
+            _buildDirectAttestation(originB, ORIGIN_CHAIN, 1);
 
         address mirrorB = factory.deployMirror(attB, sigsB, bitmapB);
 
@@ -656,9 +613,7 @@ contract CanonicalFactoryTest is Test {
     }
 
     function test_getMirrors_out_of_bounds_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(CanonicalFactory.OutOfBounds.selector, 0, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(CanonicalFactory.OutOfBounds.selector, 0, 0));
         factory.getMirrors(0, 10);
     }
 }

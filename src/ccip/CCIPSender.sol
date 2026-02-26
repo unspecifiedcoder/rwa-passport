@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
-import {AttestationLib} from "../libraries/AttestationLib.sol";
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
+import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import { AttestationLib } from "../libraries/AttestationLib.sol";
 
 /// @title CCIPSender
 /// @author Xythum Protocol
@@ -73,11 +73,7 @@ contract CCIPSender is Ownable2Step {
         uint256 signerBitmap
     ) external payable returns (bytes32 messageId) {
         return _sendMessage(
-            destinationChainSelector,
-            MESSAGE_TYPE_DEPLOY,
-            att,
-            signatures,
-            signerBitmap
+            destinationChainSelector, MESSAGE_TYPE_DEPLOY, att, signatures, signerBitmap
         );
     }
 
@@ -94,11 +90,7 @@ contract CCIPSender is Ownable2Step {
         uint256 signerBitmap
     ) external payable returns (bytes32 messageId) {
         return _sendMessage(
-            destinationChainSelector,
-            MESSAGE_TYPE_UPDATE,
-            att,
-            signatures,
-            signerBitmap
+            destinationChainSelector, MESSAGE_TYPE_UPDATE, att, signatures, signerBitmap
         );
     }
 
@@ -106,10 +98,11 @@ contract CCIPSender is Ownable2Step {
     /// @param destinationChainSelector CCIP selector for the target chain
     /// @param payload The encoded payload
     /// @return fee The estimated fee in native currency
-    function estimateFee(
-        uint64 destinationChainSelector,
-        bytes calldata payload
-    ) external view returns (uint256 fee) {
+    function estimateFee(uint64 destinationChainSelector, bytes calldata payload)
+        external
+        view
+        returns (uint256 fee)
+    {
         address receiver = allowedReceivers[destinationChainSelector];
         if (receiver == address(0)) revert ReceiverNotSet(destinationChainSelector);
 
@@ -155,12 +148,7 @@ contract CCIPSender is Ownable2Step {
         }
 
         // 3. Encode payload
-        bytes memory payload = abi.encode(
-            messageType,
-            abi.encode(att),
-            signatures,
-            signerBitmap
-        );
+        bytes memory payload = abi.encode(messageType, abi.encode(att), signatures, signerBitmap);
 
         // 4. Build CCIP message
         Client.EVM2AnyMessage memory message = _buildCCIPMessage(receiver, payload);
@@ -172,12 +160,12 @@ contract CCIPSender is Ownable2Step {
         }
 
         // 6. Send via CCIP
-        messageId = ccipRouter.ccipSend{value: fee}(destinationChainSelector, message);
+        messageId = ccipRouter.ccipSend{ value: fee }(destinationChainSelector, message);
 
         // 7. Refund excess fee
         uint256 refund = msg.value - fee;
         if (refund > 0) {
-            (bool sent,) = msg.sender.call{value: refund}("");
+            (bool sent,) = msg.sender.call{ value: refund }("");
             if (!sent) revert RefundFailed();
         }
 
@@ -186,18 +174,17 @@ contract CCIPSender is Ownable2Step {
     }
 
     /// @notice Build a CCIP message struct
-    function _buildCCIPMessage(
-        address receiver,
-        bytes memory payload
-    ) internal pure returns (Client.EVM2AnyMessage memory) {
+    function _buildCCIPMessage(address receiver, bytes memory payload)
+        internal
+        pure
+        returns (Client.EVM2AnyMessage memory)
+    {
         return Client.EVM2AnyMessage({
             receiver: abi.encode(receiver),
             data: payload,
             tokenAmounts: new Client.EVMTokenAmount[](0),
             feeToken: address(0), // pay in native
-            extraArgs: Client._argsToBytes(
-                Client.EVMExtraArgsV1({gasLimit: CCIP_GAS_LIMIT})
-            )
+            extraArgs: Client._argsToBytes(Client.EVMExtraArgsV1({ gasLimit: CCIP_GAS_LIMIT }))
         });
     }
 }

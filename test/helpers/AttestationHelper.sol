@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
+import { Test } from "forge-std/Test.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
 
 /// @title AttestationHelper
 /// @notice Helper contract that generates valid attestations and signatures for tests.

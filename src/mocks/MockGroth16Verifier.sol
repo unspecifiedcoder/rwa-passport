@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IGroth16Verifier} from "../zk/CollateralVerifier.sol";
+import { IGroth16Verifier } from "../zk/CollateralVerifier.sol";
 
 /// @title MockGroth16Verifier
 /// @author Xythum Protocol

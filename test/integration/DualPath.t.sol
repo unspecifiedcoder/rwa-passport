@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
 
 /// @title DualPathTest
 /// @notice Integration tests for the dual-path (Direct + CCIP) mirror deployment system.
@@ -50,35 +50,24 @@ contract DualPathTest is Test {
         }
 
         // 4. Deploy attestation registry
-        attestationRegistry = new AttestationRegistry(
-            address(signerRegistry),
-            MAX_STALENESS,
-            RATE_LIMIT
-        );
+        attestationRegistry =
+            new AttestationRegistry(address(signerRegistry), MAX_STALENESS, RATE_LIMIT);
 
         // 5. Deploy compliance
         compliance = new MockCompliance();
 
         // 6. Deploy factory
-        factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            treasury,
-            owner
-        );
+        factory =
+            new CanonicalFactory(address(attestationRegistry), address(compliance), treasury, owner);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────
 
-    function _buildAndSignDirect(
-        address originContract,
-        uint256 originChainId,
-        uint256 nonce
-    ) internal view returns (
-        AttestationLib.Attestation memory att,
-        bytes memory signatures,
-        uint256 bitmap
-    ) {
+    function _buildAndSignDirect(address originContract, uint256 originChainId, uint256 nonce)
+        internal
+        view
+        returns (AttestationLib.Attestation memory att, bytes memory signatures, uint256 bitmap)
+    {
         att = helper.buildAttestation(originContract, originChainId, block.chainid, nonce);
 
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
@@ -95,11 +84,8 @@ contract DualPathTest is Test {
     /// @notice Full lifecycle test: deploy mirror via direct path, verify everything
     function test_full_flow_direct_path() public {
         // 1. Build attestation off-chain
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildAndSignDirect(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildAndSignDirect(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         // 2. Predict the mirror address
         address predicted = factory.computeMirrorAddress(att);
@@ -146,21 +132,15 @@ contract DualPathTest is Test {
     ///         CCIP path (deployMirror), verifying both interoperate on the same state.
     function test_direct_deploy_then_ccip_path_coexist() public {
         // 1. Deploy mirror for origin A via direct path
-        (
-            AttestationLib.Attestation memory attA,
-            bytes memory sigsA,
-            uint256 bitmapA
-        ) = _buildAndSignDirect(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory attA, bytes memory sigsA, uint256 bitmapA) =
+            _buildAndSignDirect(ORIGIN_CONTRACT, ORIGIN_CHAIN, 1);
 
         address mirrorA = factory.deployMirrorDirect(attA, sigsA, bitmapA);
 
         // 2. Deploy mirror for origin B via CCIP-style path (deployMirror)
         address originB = address(0xBBB);
-        (
-            AttestationLib.Attestation memory attB,
-            bytes memory sigsB,
-            uint256 bitmapB
-        ) = _buildAndSignDirect(originB, ORIGIN_CHAIN, 1);
+        (AttestationLib.Attestation memory attB, bytes memory sigsB, uint256 bitmapB) =
+            _buildAndSignDirect(originB, ORIGIN_CHAIN, 1);
 
         address mirrorB = factory.deployMirror(attB, sigsB, bitmapB);
 
@@ -176,20 +156,13 @@ contract DualPathTest is Test {
         assertEq(all[1], mirrorB);
 
         // 5. Both attestations stored in registry
-        assertTrue(
-            attestationRegistry.isAttested(ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid)
-        );
-        assertTrue(
-            attestationRegistry.isAttested(originB, ORIGIN_CHAIN, block.chainid)
-        );
+        assertTrue(attestationRegistry.isAttested(ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid));
+        assertTrue(attestationRegistry.isAttested(originB, ORIGIN_CHAIN, block.chainid));
 
         // 6. Trying to redeploy origin A via CCIP path should fail (shared state)
         vm.warp(block.timestamp + RATE_LIMIT + 1);
-        (
-            AttestationLib.Attestation memory attA2,
-            bytes memory sigsA2,
-            uint256 bitmapA2
-        ) = _buildAndSignDirect(ORIGIN_CONTRACT, ORIGIN_CHAIN, 2);
+        (AttestationLib.Attestation memory attA2, bytes memory sigsA2, uint256 bitmapA2) =
+            _buildAndSignDirect(ORIGIN_CONTRACT, ORIGIN_CHAIN, 2);
 
         vm.expectRevert(); // MirrorAlreadyDeployed
         factory.deployMirror(attA2, sigsA2, bitmapA2);

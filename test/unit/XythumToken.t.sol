@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
+import { Test } from "forge-std/Test.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
 
 /// @title XythumTokenTest
 /// @notice Unit tests for XythumToken — the canonical mirror ERC-20
@@ -283,9 +283,7 @@ contract XythumTokenTest is Test {
         // mintCap is 1_000_000 ether, try minting 1_000_001 ether
         vm.expectRevert(
             abi.encodeWithSelector(
-                XythumToken.MintCapExceeded.selector,
-                1_000_001 ether,
-                1_000_000 ether
+                XythumToken.MintCapExceeded.selector, 1_000_001 ether, 1_000_000 ether
             )
         );
         token.mint(user1, 1_000_001 ether);
@@ -298,9 +296,7 @@ contract XythumTokenTest is Test {
         assertEq(token.totalMinted(), 1_000_000 ether);
 
         // One more wei should fail
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumToken.MintCapExceeded.selector, 1, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumToken.MintCapExceeded.selector, 1, 0));
         token.mint(user1, 1);
     }
 
@@ -317,9 +313,7 @@ contract XythumTokenTest is Test {
         // Try to set cap below current supply — should revert
         vm.expectRevert(
             abi.encodeWithSelector(
-                XythumToken.InvalidMintCap.selector,
-                100_000 ether,
-                500_000 ether
+                XythumToken.InvalidMintCap.selector, 100_000 ether, 500_000 ether
             )
         );
         token.updateMintCap(100_000 ether);
@@ -327,9 +321,7 @@ contract XythumTokenTest is Test {
 
     function test_updateMintCap_by_non_factory_reverts() public {
         vm.prank(attacker);
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker));
         token.updateMintCap(2_000_000 ether);
     }
 

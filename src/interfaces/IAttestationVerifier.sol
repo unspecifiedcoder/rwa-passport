@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {AttestationLib} from "../libraries/AttestationLib.sol";
+import { AttestationLib } from "../libraries/AttestationLib.sol";
 
 /// @title IAttestationVerifier
 /// @author Xythum Protocol
@@ -36,18 +36,19 @@ interface IAttestationVerifier {
     /// @param attestationId The unique attestation identifier
     /// @return The attestation data
     function getAttestation(bytes32 attestationId)
-        external view returns (AttestationLib.Attestation memory);
+        external
+        view
+        returns (AttestationLib.Attestation memory);
 
     /// @notice Check if an origin/target pair has been attested
     /// @param originContract Address of the RWA on source chain
     /// @param originChainId Source chain ID
     /// @param targetChainId Destination chain ID
     /// @return True if a valid attestation exists
-    function isAttested(
-        address originContract,
-        uint256 originChainId,
-        uint256 targetChainId
-    ) external view returns (bool);
+    function isAttested(address originContract, uint256 originChainId, uint256 targetChainId)
+        external
+        view
+        returns (bool);
 
     /// @notice Get the latest attestation for an origin/target pair
     /// @param originContract Address of the RWA on source chain

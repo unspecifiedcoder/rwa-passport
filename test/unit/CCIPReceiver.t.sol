@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {XythumCCIPReceiver} from "../../src/ccip/CCIPReceiver.sol";
-import {MockCCIPRouter} from "../helpers/MockCCIPRouter.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { XythumCCIPReceiver } from "../../src/ccip/CCIPReceiver.sol";
+import { MockCCIPRouter } from "../helpers/MockCCIPRouter.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 
 /// @title CCIPReceiverTest
 /// @notice Unit tests for XythumCCIPReceiver — target chain attestation handling
@@ -47,10 +47,7 @@ contract CCIPReceiverTest is Test {
         attestationRegistry = new AttestationRegistry(address(signerRegistry), 24 hours, 1 hours);
         compliance = new MockCompliance();
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         // 2. Deploy CCIP components
@@ -65,10 +62,11 @@ contract CCIPReceiverTest is Test {
     // ─── Helpers ─────────────────────────────────────────────────────
 
     /// @notice Build a CCIP message simulating delivery from ccipSender
-    function _buildCCIPMessage(
-        bytes32 messageId,
-        bytes memory payload
-    ) internal view returns (Client.Any2EVMMessage memory) {
+    function _buildCCIPMessage(bytes32 messageId, bytes memory payload)
+        internal
+        view
+        returns (Client.Any2EVMMessage memory)
+    {
         return Client.Any2EVMMessage({
             messageId: messageId,
             sourceChainSelector: SOURCE_SELECTOR,
@@ -85,9 +83,8 @@ contract CCIPReceiverTest is Test {
         uint256 targetChainId,
         uint256 nonce
     ) internal view returns (bytes memory) {
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            originContract, originChainId, targetChainId, nonce
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
 
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
         for (uint256 i = 0; i < THRESHOLD; i++) {
@@ -163,9 +160,7 @@ contract CCIPReceiverTest is Test {
         vm.prank(address(router));
         vm.expectRevert(
             abi.encodeWithSelector(
-                XythumCCIPReceiver.UnauthorizedSender.selector,
-                SOURCE_SELECTOR,
-                unauthorizedSender
+                XythumCCIPReceiver.UnauthorizedSender.selector, SOURCE_SELECTOR, unauthorizedSender
             )
         );
         ccipReceiver.ccipReceive(message);
@@ -244,7 +239,10 @@ contract CCIPReceiverTest is Test {
         ccipReceiver.ccipReceive(message2); // Should NOT revert
 
         // Verify message was still processed
-        assertTrue(ccipReceiver.processedMessages(messageId2), "Failed deploy should still be marked processed");
+        assertTrue(
+            ccipReceiver.processedMessages(messageId2),
+            "Failed deploy should still be marked processed"
+        );
     }
 
     // ─── Source Chain Validation ──────────────────────────────────────
@@ -266,9 +264,7 @@ contract CCIPReceiverTest is Test {
         vm.prank(address(router));
         vm.expectRevert(
             abi.encodeWithSelector(
-                XythumCCIPReceiver.UnauthorizedSender.selector,
-                wrongSelector,
-                ccipSender
+                XythumCCIPReceiver.UnauthorizedSender.selector, wrongSelector, ccipSender
             )
         );
         ccipReceiver.ccipReceive(message);

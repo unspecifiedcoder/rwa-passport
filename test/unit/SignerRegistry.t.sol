@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test, console2} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {ISignerRegistry} from "../../src/interfaces/ISignerRegistry.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import { Test, console2 } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { ISignerRegistry } from "../../src/interfaces/ISignerRegistry.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title SignerRegistryTest
 /// @notice Unit tests for the SignerRegistry contract
@@ -83,9 +83,7 @@ contract SignerRegistryTest is Test {
         uint256 availableAt = block.timestamp + registry.REMOVAL_COOLDOWN();
         vm.expectRevert(
             abi.encodeWithSelector(
-                SignerRegistry.RemovalCooldownNotElapsed.selector,
-                signer5,
-                availableAt
+                SignerRegistry.RemovalCooldownNotElapsed.selector, signer5, availableAt
             )
         );
         registry.removeSigner(signer5);
@@ -126,9 +124,7 @@ contract SignerRegistryTest is Test {
         vm.warp(block.timestamp + 7 days + 1);
 
         // Try to remove — would leave 4 signers with threshold 5
-        vm.expectRevert(
-            abi.encodeWithSelector(SignerRegistry.InvalidThreshold.selector, 5, 4)
-        );
+        vm.expectRevert(abi.encodeWithSelector(SignerRegistry.InvalidThreshold.selector, 5, 4));
         registry.removeSigner(signer5);
     }
 
@@ -158,16 +154,12 @@ contract SignerRegistryTest is Test {
     }
 
     function test_setThreshold_zero_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(SignerRegistry.InvalidThreshold.selector, 0, 5)
-        );
+        vm.expectRevert(abi.encodeWithSelector(SignerRegistry.InvalidThreshold.selector, 0, 5));
         registry.setThreshold(0);
     }
 
     function test_setThreshold_exceeds_signer_count_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(SignerRegistry.InvalidThreshold.selector, 6, 5)
-        );
+        vm.expectRevert(abi.encodeWithSelector(SignerRegistry.InvalidThreshold.selector, 6, 5));
         registry.setThreshold(6);
     }
 

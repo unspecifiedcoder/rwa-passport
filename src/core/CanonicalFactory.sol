@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {ICanonicalFactory} from "../interfaces/ICanonicalFactory.sol";
-import {IAttestationVerifier} from "../interfaces/IAttestationVerifier.sol";
-import {AttestationLib} from "../libraries/AttestationLib.sol";
-import {XythumToken} from "./XythumToken.sol";
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { ICanonicalFactory } from "../interfaces/ICanonicalFactory.sol";
+import { IAttestationVerifier } from "../interfaces/IAttestationVerifier.sol";
+import { AttestationLib } from "../libraries/AttestationLib.sol";
+import { XythumToken } from "./XythumToken.sol";
 
 /// @title CanonicalFactory
 /// @author Xythum Protocol
@@ -120,7 +120,9 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
 
     /// @inheritdoc ICanonicalFactory
     function computeMirrorAddress(AttestationLib.Attestation calldata att)
-        external view returns (address)
+        external
+        view
+        returns (address)
     {
         bytes32 salt = AttestationLib.canonicalSalt(att);
         bytes32 initCodeHash = _computeInitCodeHash(att);
@@ -158,7 +160,11 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     /// @param offset Starting index
     /// @param limit Maximum number of mirrors to return
     /// @return result Array of mirror addresses
-    function getMirrors(uint256 offset, uint256 limit) external view returns (address[] memory result) {
+    function getMirrors(uint256 offset, uint256 limit)
+        external
+        view
+        returns (address[] memory result)
+    {
         uint256 total = allMirrors.length;
         if (offset >= total) {
             revert OutOfBounds(offset, total);
@@ -260,7 +266,7 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
 
         // 6. Collect fee
         if (msg.value > 0 && treasury != address(0)) {
-            (bool sent,) = treasury.call{value: msg.value}("");
+            (bool sent,) = treasury.call{ value: msg.value }("");
             require(sent, "Fee transfer failed");
         }
 
@@ -269,10 +275,10 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     }
 
     /// @notice Deploy XythumToken via CREATE2
-    function _deployToken(
-        bytes32 salt,
-        AttestationLib.Attestation calldata att
-    ) internal returns (address mirror) {
+    function _deployToken(bytes32 salt, AttestationLib.Attestation calldata att)
+        internal
+        returns (address mirror)
+    {
         bytes memory creationCode = _getCreationCode(att);
 
         assembly {
@@ -303,7 +309,9 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
 
     /// @notice Build the full creation code (bytecode + constructor args)
     function _getCreationCode(AttestationLib.Attestation calldata att)
-        internal view returns (bytes memory)
+        internal
+        view
+        returns (bytes memory)
     {
         return abi.encodePacked(
             type(XythumToken).creationCode,
@@ -320,21 +328,26 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
 
     /// @notice Compute the init code hash for CREATE2 address prediction
     function _computeInitCodeHash(AttestationLib.Attestation calldata att)
-        internal view returns (bytes32)
+        internal
+        view
+        returns (bytes32)
     {
         return keccak256(_getCreationCode(att));
     }
 
     /// @notice Compute a CREATE2 address
     function _computeCreate2Address(bytes32 salt, bytes32 initCodeHash)
-        internal view returns (address)
+        internal
+        view
+        returns (address)
     {
-        return address(uint160(uint256(keccak256(abi.encodePacked(
-            bytes1(0xff),
-            address(this),
-            salt,
-            initCodeHash
-        )))));
+        return address(
+            uint160(
+                uint256(
+                    keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, initCodeHash))
+                )
+            )
+        );
     }
 
     /// @notice Default mirror token name

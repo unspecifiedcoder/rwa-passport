@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
-import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
-import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
-import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
-import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
-import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
-import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
-import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
-import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
+import { Test } from "forge-std/Test.sol";
+import { Deployers } from "@uniswap/v4-core/test/utils/Deployers.sol";
+import { IPoolManager } from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import { IHooks } from "@uniswap/v4-core/src/interfaces/IHooks.sol";
+import { Hooks } from "@uniswap/v4-core/src/libraries/Hooks.sol";
+import { PoolKey } from "@uniswap/v4-core/src/types/PoolKey.sol";
+import { PoolId, PoolIdLibrary } from "@uniswap/v4-core/src/types/PoolId.sol";
+import { Currency, CurrencyLibrary } from "@uniswap/v4-core/src/types/Currency.sol";
+import { BalanceDelta } from "@uniswap/v4-core/src/types/BalanceDelta.sol";
+import { LPFeeLibrary } from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
+import { TickMath } from "@uniswap/v4-core/src/libraries/TickMath.sol";
+import { MockERC20 } from "solmate/src/test/utils/mocks/MockERC20.sol";
+import { PoolSwapTest } from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
 
-import {RWAHook} from "../../src/hooks/RWAHook.sol";
-import {LiquidityBootstrap} from "../../src/hooks/LiquidityBootstrap.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {HookMiner} from "../helpers/HookMiner.sol";
+import { RWAHook } from "../../src/hooks/RWAHook.sol";
+import { LiquidityBootstrap } from "../../src/hooks/LiquidityBootstrap.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { HookMiner } from "../helpers/HookMiner.sol";
 
 /// @title LiquidityFlowTest
 /// @notice Integration test: deploy canonical mirror -> bootstrap pool -> swap
@@ -69,10 +69,7 @@ contract LiquidityFlowTest is Test, Deployers {
         attestationRegistry = new AttestationRegistry(address(signerRegistry), 24 hours, 1 hours);
         compliance = new MockCompliance();
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         // 2. Deploy V4 PoolManager and routers
@@ -83,10 +80,8 @@ contract LiquidityFlowTest is Test, Deployers {
 
         // 4. Mine and deploy RWAHook at valid address
         uint160 flags = uint160(
-            Hooks.BEFORE_INITIALIZE_FLAG |
-            Hooks.BEFORE_ADD_LIQUIDITY_FLAG |
-            Hooks.BEFORE_SWAP_FLAG |
-            Hooks.AFTER_SWAP_FLAG
+            Hooks.BEFORE_INITIALIZE_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_SWAP_FLAG
+                | Hooks.AFTER_SWAP_FLAG
         );
 
         (address hookAddr, bytes32 salt) = HookMiner.find(
@@ -96,16 +91,12 @@ contract LiquidityFlowTest is Test, Deployers {
             abi.encode(address(manager), address(factory), owner)
         );
 
-        hook = new RWAHook{salt: salt}(manager, address(factory), owner);
+        hook = new RWAHook{ salt: salt }(manager, address(factory), owner);
         require(address(hook) == hookAddr, "Hook address mismatch");
 
         // 5. Deploy LiquidityBootstrap
         bootstrap = new LiquidityBootstrap(
-            address(manager),
-            address(factory),
-            address(hook),
-            address(usdc),
-            owner
+            address(manager), address(factory), address(hook), address(usdc), owner
         );
 
         // 6. Disable compliance globally for setUp — re-enable per test
@@ -120,11 +111,12 @@ contract LiquidityFlowTest is Test, Deployers {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            originContract, originChainId, targetChainId, nonce
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) signerIndices[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            signerIndices[i] = i;
+        }
         bytes32 domainSep = attestationRegistry.DOMAIN_SEPARATOR();
         (bytes memory sigs, uint256 bitmap) = helper.signAttestation(att, domainSep, signerIndices);
         mirror = factory.deployMirror(att, sigs, bitmap);
@@ -196,11 +188,9 @@ contract LiquidityFlowTest is Test, Deployers {
             IPoolManager.SwapParams({
                 zeroForOne: mirrorAddr < address(usdc), // mirror -> USDC
                 amountSpecified: -100,
-                sqrtPriceLimitX96: mirrorAddr < address(usdc)
-                    ? MIN_PRICE_LIMIT
-                    : MAX_PRICE_LIMIT
+                sqrtPriceLimitX96: mirrorAddr < address(usdc) ? MIN_PRICE_LIMIT : MAX_PRICE_LIMIT
             }),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+            PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
         );
         vm.stopPrank();
@@ -210,7 +200,9 @@ contract LiquidityFlowTest is Test, Deployers {
         // When mirror < usdc: zeroForOne=true → sell currency0(mirror), receive currency1(usdc)
         // When mirror > usdc: zeroForOne=false → sell currency1(mirror), receive currency0(usdc)
         // Either way, trader's USDC balance should increase.
-        assertGt(usdc.balanceOf(trader), traderUsdcBefore, "Trader should have received USDC from swap");
+        assertGt(
+            usdc.balanceOf(trader), traderUsdcBefore, "Trader should have received USDC from swap"
+        );
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -261,7 +253,7 @@ contract LiquidityFlowTest is Test, Deployers {
         );
 
         // 4. Trade immediately — NAV is fresh, fee = baseFee (500 = 5 bps)
-        (, , , uint256 lastNAV1, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV1,) = hook.poolConfigs(poolId);
         uint256 age1 = block.timestamp - lastNAV1;
         assertTrue(age1 <= 1 hours, "NAV should be fresh before first trade");
 
@@ -270,7 +262,7 @@ contract LiquidityFlowTest is Test, Deployers {
         // 5. Warp 12 hours — NAV becomes stale
         vm.warp(block.timestamp + 12 hours);
 
-        (, , , uint256 lastNAV2, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV2,) = hook.poolConfigs(poolId);
         uint256 age2 = block.timestamp - lastNAV2;
         assertTrue(age2 >= 6 hours, "NAV should be stale after warp");
 
@@ -280,7 +272,7 @@ contract LiquidityFlowTest is Test, Deployers {
         // 6. Update NAV — resets fee
         hook.updateNAV(poolId);
 
-        (, , , uint256 lastNAV3, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV3,) = hook.poolConfigs(poolId);
         assertEq(lastNAV3, block.timestamp, "NAV should be refreshed");
 
         // 7. Trade again — fee should be baseFee again
@@ -300,7 +292,11 @@ contract LiquidityFlowTest is Test, Deployers {
 
         // Verify pool exists
         assertTrue(bootstrap.hasPool(mirrorAddr), "hasPool should be true");
-        assertEq(PoolId.unwrap(bootstrap.getPool(mirrorAddr)), PoolId.unwrap(poolId), "getPool should match");
+        assertEq(
+            PoolId.unwrap(bootstrap.getPool(mirrorAddr)),
+            PoolId.unwrap(poolId),
+            "getPool should match"
+        );
 
         // Verify hook registered the pool config
         (address xToken, uint24 baseFee, uint24 staleFee, uint256 lastNAV, bool active) =
@@ -332,7 +328,9 @@ contract LiquidityFlowTest is Test, Deployers {
         address mirrorAddr = _deployCanonicalMirror(address(0xDDD), 1, 42161, 4);
         bootstrap.createPool(mirrorAddr);
 
-        vm.expectRevert(abi.encodeWithSelector(LiquidityBootstrap.PoolAlreadyExists.selector, mirrorAddr));
+        vm.expectRevert(
+            abi.encodeWithSelector(LiquidityBootstrap.PoolAlreadyExists.selector, mirrorAddr)
+        );
         bootstrap.createPool(mirrorAddr);
     }
 }

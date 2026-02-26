@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {XythumCCIPReceiver} from "../src/ccip/CCIPReceiver.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { XythumCCIPReceiver } from "../src/ccip/CCIPReceiver.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
 
 /// @title RedeployFactoryBnb
 /// @notice Redeploys CanonicalFactory + CCIPReceiver on BNB Testnet with new code
@@ -30,18 +30,15 @@ contract RedeployFactoryBnb is Script {
         // 1. Deploy NEW CanonicalFactory (with deployMirrorDirect + enumeration)
         CanonicalFactory factory = new CanonicalFactory(
             attRegBnb,
-            address(0),     // no compliance for demo
-            deployer,       // treasury
-            deployer        // owner
+            address(0), // no compliance for demo
+            deployer, // treasury
+            deployer // owner
         );
         console.log("NEW CanonicalFactory:", address(factory));
 
         // 2. Deploy NEW CCIPReceiver (points to new factory)
-        XythumCCIPReceiver receiver = new XythumCCIPReceiver(
-            ccipRouterBnb,
-            address(factory),
-            deployer
-        );
+        XythumCCIPReceiver receiver =
+            new XythumCCIPReceiver(ccipRouterBnb, address(factory), deployer);
         console.log("NEW CCIPReceiver:", address(receiver));
 
         // 3. Wire: allow Fuji CCIPSender as trusted source on new receiver
@@ -109,20 +106,12 @@ contract RedeployFactoryFuji is Script {
         vm.startBroadcast(deployerKey);
 
         // 1. Deploy NEW CanonicalFactory
-        CanonicalFactory factory = new CanonicalFactory(
-            attRegFuji,
-            address(0),
-            deployer,
-            deployer
-        );
+        CanonicalFactory factory = new CanonicalFactory(attRegFuji, address(0), deployer, deployer);
         console.log("NEW CanonicalFactory:", address(factory));
 
         // 2. Deploy NEW CCIPReceiver
-        XythumCCIPReceiver receiver = new XythumCCIPReceiver(
-            ccipRouterFuji,
-            address(factory),
-            deployer
-        );
+        XythumCCIPReceiver receiver =
+            new XythumCCIPReceiver(ccipRouterFuji, address(factory), deployer);
         console.log("NEW CCIPReceiver:", address(receiver));
 
         // 3. Wire: allow BNB CCIPSender on new Fuji receiver

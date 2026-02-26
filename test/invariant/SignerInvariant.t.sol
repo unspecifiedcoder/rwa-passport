@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
 
 /// @title SignerRegistryHandler
 /// @notice Fuzzing handler that wraps SignerRegistry for invariant testing
@@ -104,7 +104,9 @@ contract SignerInvariantTest is Test {
     function invariant_threshold_lte_signerCount() public view {
         assertLe(
             registry.threshold(),
-            registry.getSignerSet().length > 0 ? registry.getSignerSet().length : registry.threshold(),
+            registry.getSignerSet().length > 0
+                ? registry.getSignerSet().length
+                : registry.threshold(),
             "Threshold exceeds signer count"
         );
     }
@@ -114,10 +116,7 @@ contract SignerInvariantTest is Test {
         address[] memory signers = registry.getSignerSet();
         for (uint256 i = 0; i < signers.length; i++) {
             for (uint256 j = i + 1; j < signers.length; j++) {
-                assertTrue(
-                    signers[i] != signers[j],
-                    "Duplicate signer found"
-                );
+                assertTrue(signers[i] != signers[j], "Duplicate signer found");
             }
         }
     }
@@ -130,11 +129,7 @@ contract SignerInvariantTest is Test {
             assertTrue(registry.isSigner(signers[i]), "Active signer not marked");
 
             // signerIndex must match (getSignerIndex returns 0-indexed)
-            assertEq(
-                registry.getSignerIndex(signers[i]),
-                i,
-                "Signer index mismatch"
-            );
+            assertEq(registry.getSignerIndex(signers[i]), i, "Signer index mismatch");
         }
     }
 

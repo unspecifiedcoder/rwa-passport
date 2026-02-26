@@ -21,20 +21,55 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Show Forge version
-        run: |
-          forge --version
+        run: forge --version
 
       - name: Run Forge fmt
-        run: |
-          forge fmt --check
+        run: forge fmt --check
         id: fmt
 
       - name: Run Forge build
-        run: |
-          forge build --sizes
+        run: forge build --sizes
         id: build
 
       - name: Run Forge tests
-        run: |
-          forge test -vvv
+        run: forge test -vvv
         id: test
+        env:
+          # Provide dummy env vars so scripts compile (they reference vm.envUint)
+          PRIVATE_KEY: "0x0000000000000000000000000000000000000000000000000000000000000001"
+          RPC_AVALANCHE_FUJI: "https://api.avax-test.network/ext/bc/C/rpc"
+          RPC_BNB_TESTNET: "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
+          RPC_ETHEREUM_SEPOLIA: "https://eth-sepolia.g.alchemy.com/v2/demo"
+
+      - name: Run Forge snapshot
+        run: forge snapshot
+        id: snapshot
+        env:
+          PRIVATE_KEY: "0x0000000000000000000000000000000000000000000000000000000000000001"
+          RPC_AVALANCHE_FUJI: "https://api.avax-test.network/ext/bc/C/rpc"
+          RPC_BNB_TESTNET: "https://data-seed-prebsc-1-s1.bnbchain.org:8545"
+          RPC_ETHEREUM_SEPOLIA: "https://eth-sepolia.g.alchemy.com/v2/demo"
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npx next build
+        env:
+          NEXT_PUBLIC_ALCHEMY_API_KEY: "demo"

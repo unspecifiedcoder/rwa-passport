@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {AttestationRegistry} from "../src/core/AttestationRegistry.sol";
-import {XythumToken} from "../src/core/XythumToken.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
+import { XythumToken } from "../src/core/XythumToken.sol";
 
 /// @title RedeployAndMintTest
 /// @notice Redeploy Fuji factory (with mintMirror), deploy mirror, mint tokens, transfer, verify.
@@ -29,7 +29,8 @@ contract FullE2E is Script {
         vm.startBroadcast(key);
 
         // 1. Deploy factory
-        CanonicalFactory factory = new CanonicalFactory(FUJI_ATT_REG, address(0), deployer, deployer);
+        CanonicalFactory factory =
+            new CanonicalFactory(FUJI_ATT_REG, address(0), deployer, deployer);
         console.log("1. Factory:", address(factory));
 
         // 2. Build & sign attestation, deploy mirror
@@ -100,7 +101,11 @@ contract FullE2E is Script {
         console.log("   Total supply:", token.totalSupply() / 1 ether);
     }
 
-    function _sign(AttestationLib.Attestation memory att) internal pure returns (bytes memory sigs, uint256 bitmap) {
+    function _sign(AttestationLib.Attestation memory att)
+        internal
+        pure
+        returns (bytes memory sigs, uint256 bitmap)
+    {
         bytes32 domainSep = AttestationLib.domainSeparator(43113, FUJI_ATT_REG);
         bytes32 digest = AttestationLib.toTypedDataHash(att, domainSep);
         uint256[3] memory keys = [SIGNER_KEY_1, SIGNER_KEY_2, SIGNER_KEY_3];

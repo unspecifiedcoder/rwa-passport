@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../src/core/XythumToken.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../src/core/XythumToken.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
 
 /// @title DeployMirror
 /// @notice Deploy a single canonical mirror for a specific RWA.

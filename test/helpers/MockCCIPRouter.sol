@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import {IAny2EVMMessageReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IAny2EVMMessageReceiver.sol";
-import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
+import { IAny2EVMMessageReceiver } from
+    "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IAny2EVMMessageReceiver.sol";
+import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 
 /// @title MockCCIPRouter
 /// @notice Simulates Chainlink CCIP router for single-chain testing.
@@ -48,16 +49,23 @@ contract MockCCIPRouter is IRouterClient {
     }
 
     /// @inheritdoc IRouterClient
-    function getFee(uint64, Client.EVM2AnyMessage memory) external view override returns (uint256) {
+    function getFee(uint64, Client.EVM2AnyMessage memory)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return fixedFee;
     }
 
     /// @inheritdoc IRouterClient
     /// @dev Immediately delivers to the receiver — simulates cross-chain in one tx
-    function ccipSend(
-        uint64 destinationChainSelector,
-        Client.EVM2AnyMessage calldata message
-    ) external payable override returns (bytes32) {
+    function ccipSend(uint64 destinationChainSelector, Client.EVM2AnyMessage calldata message)
+        external
+        payable
+        override
+        returns (bytes32)
+    {
         address receiver = receivers[destinationChainSelector];
         require(receiver != address(0), "MockCCIPRouter: no receiver");
         require(msg.value >= fixedFee, "MockCCIPRouter: insufficient fee");

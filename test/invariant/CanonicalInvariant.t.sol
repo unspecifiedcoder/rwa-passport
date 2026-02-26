@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
 
 /// @title CanonicalFactoryHandler
 /// @notice Handler for invariant testing — calls deployMirror with varied inputs
@@ -61,9 +61,8 @@ contract CanonicalFactoryHandler is Test {
 
         uint256 nonce = nextNonce++;
 
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            originContract, originChainId, targetChainId, nonce
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
 
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
         for (uint256 i = 0; i < THRESHOLD; i++) {
@@ -113,10 +112,7 @@ contract CanonicalInvariantTest is Test {
         attestationRegistry = new AttestationRegistry(address(signerRegistry), 24 hours, 1 hours);
         compliance = new MockCompliance();
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         handler = new CanonicalFactoryHandler(factory, attestationRegistry, helper);
@@ -136,7 +132,7 @@ contract CanonicalInvariantTest is Test {
                 uint256 targetChainId,
                 , // attestationId
                 , // deployedAt
-                  // active
+                    // active
             ) = factory.mirrorInfoMap(mirror);
 
             // Rebuild a minimal attestation for computeMirrorAddress
@@ -187,11 +183,7 @@ contract CanonicalInvariantTest is Test {
         for (uint256 i = 0; i < count; i++) {
             address mirror = handler.deployedMirrors(i);
 
-            (
-                address originContract,
-                uint256 originChainId,
-                ,,,
-            ) = factory.mirrorInfoMap(mirror);
+            (address originContract, uint256 originChainId,,,,) = factory.mirrorInfoMap(mirror);
 
             XythumToken mirrorToken = XythumToken(mirror);
             assertEq(

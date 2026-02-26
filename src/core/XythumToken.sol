@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {IXythumToken} from "../interfaces/IXythumToken.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { IXythumToken } from "../interfaces/IXythumToken.sol";
 
 /// @title ICompliance
 /// @notice Minimal interface for transfer compliance checks
 interface ICompliance {
     function isTransferCompliant(address from, address to, uint256 amount)
-        external view returns (bool);
+        external
+        view
+        returns (bool);
 }
 
 /// @title XythumToken

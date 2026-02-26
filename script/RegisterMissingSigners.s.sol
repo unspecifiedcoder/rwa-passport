@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SignerRegistry} from "../src/core/SignerRegistry.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { SignerRegistry } from "../src/core/SignerRegistry.sol";
 
 /// @title RegisterMissingSigners
 /// @notice Registers signer 4 & 5 on a SignerRegistry that only has 3 signers

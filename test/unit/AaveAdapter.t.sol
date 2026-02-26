@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {AaveAdapter} from "../../src/adapters/AaveAdapter.sol";
-import {CollateralVerifier} from "../../src/zk/CollateralVerifier.sol";
-import {MockGroth16Verifier} from "../helpers/MockCollateralVerifier.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
+import { Test } from "forge-std/Test.sol";
+import { AaveAdapter } from "../../src/adapters/AaveAdapter.sol";
+import { CollateralVerifier } from "../../src/zk/CollateralVerifier.sol";
+import { MockGroth16Verifier } from "../helpers/MockCollateralVerifier.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
 
 /// @title AaveAdapterTest
 /// @notice Unit tests for AaveAdapter — ZK proof-backed collateral deposits
@@ -60,10 +60,7 @@ contract AaveAdapterTest is Test {
         compliance = new MockCompliance();
         compliance.setEnforceCompliance(false); // Disable for testing
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         // 2. Deploy canonical mirror (used as the collateral asset)
@@ -75,12 +72,8 @@ contract AaveAdapterTest is Test {
         collateralVerifier.registerAsset(mirrorAddr, ASSET_ID);
 
         // 4. Deploy adapter
-        adapter = new AaveAdapter(
-            address(collateralVerifier),
-            address(factory),
-            MAX_PROOF_AGE,
-            owner
-        );
+        adapter =
+            new AaveAdapter(address(collateralVerifier), address(factory), MAX_PROOF_AGE, owner);
 
         // 5. Deploy receipt token (a separate canonical mirror repurposed)
         // For testing: create a simple XythumToken that adapter can mint/burn
@@ -103,11 +96,12 @@ contract AaveAdapterTest is Test {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            originContract, originChainId, targetChainId, nonce
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) signerIndices[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            signerIndices[i] = i;
+        }
         bytes32 domainSep = attestationRegistry.DOMAIN_SEPARATOR();
         (bytes memory sigs, uint256 bitmap) = helper.signAttestation(att, domainSep, signerIndices);
         mirror = factory.deployMirror(att, sigs, bitmap);
@@ -170,9 +164,7 @@ contract AaveAdapterTest is Test {
 
         // Second deposit with same proofId
         vm.prank(user);
-        vm.expectRevert(
-            abi.encodeWithSelector(AaveAdapter.ProofAlreadyUsed.selector, proofId)
-        );
+        vm.expectRevert(abi.encodeWithSelector(AaveAdapter.ProofAlreadyUsed.selector, proofId));
         adapter.depositWithProof(proofId);
     }
 
@@ -206,20 +198,14 @@ contract AaveAdapterTest is Test {
 
         // Deposit should fail — asset not canonical
         vm.prank(user);
-        vm.expectRevert(
-            abi.encodeWithSelector(AaveAdapter.AssetNotCanonical.selector, fakeAsset)
-        );
+        vm.expectRevert(abi.encodeWithSelector(AaveAdapter.AssetNotCanonical.selector, fakeAsset));
         adapter.depositWithProof(proofId);
     }
 
     function test_depositWithProof_no_receipt_token_reverts() public {
         // Deploy adapter without receipt token
-        AaveAdapter bareAdapter = new AaveAdapter(
-            address(collateralVerifier),
-            address(factory),
-            MAX_PROOF_AGE,
-            owner
-        );
+        AaveAdapter bareAdapter =
+            new AaveAdapter(address(collateralVerifier), address(factory), MAX_PROOF_AGE, owner);
         // receiptToken not set
 
         bytes32 proofId = _submitProof(6, 100_000e18);

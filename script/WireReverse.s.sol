@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
-import {XythumCCIPReceiver} from "../src/ccip/CCIPReceiver.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
+import { XythumCCIPReceiver } from "../src/ccip/CCIPReceiver.sol";
 
 /// @title WireReverse
 /// @notice Wires the reverse direction: BNB CCIPSender → Fuji CCIPReceiver

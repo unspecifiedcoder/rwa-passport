@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IGroth16Verifier} from "../../src/zk/CollateralVerifier.sol";
+import { IGroth16Verifier } from "../../src/zk/CollateralVerifier.sol";
 
 /// @title MockGroth16Verifier
 /// @notice Mock Groth16 verifier for testing when circom/snarkjs are unavailable.

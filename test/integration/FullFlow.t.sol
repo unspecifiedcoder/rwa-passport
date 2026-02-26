@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {CCIPSender} from "../../src/ccip/CCIPSender.sol";
-import {XythumCCIPReceiver} from "../../src/ccip/CCIPReceiver.sol";
-import {MockCCIPRouter} from "../helpers/MockCCIPRouter.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {MockERC3643} from "../helpers/MockERC3643.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {TestConstants} from "../helpers/TestConstants.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { CCIPSender } from "../../src/ccip/CCIPSender.sol";
+import { XythumCCIPReceiver } from "../../src/ccip/CCIPReceiver.sol";
+import { MockCCIPRouter } from "../helpers/MockCCIPRouter.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { MockERC3643 } from "../helpers/MockERC3643.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { TestConstants } from "../helpers/TestConstants.sol";
 
 /// @title FullFlowTest
 /// @notice End-to-end integration test: request → sign → CCIP send → deploy mirror
@@ -65,10 +65,7 @@ contract FullFlowTest is Test {
         // ── Deploy factory ──
         compliance = new MockCompliance();
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         // ── Deploy CCIP infrastructure ──
@@ -107,11 +104,11 @@ contract FullFlowTest is Test {
         uint256 originChainId,
         uint256 targetChainId,
         uint256 nonce
-    ) internal view returns (
-        AttestationLib.Attestation memory att,
-        bytes memory signatures,
-        uint256 bitmap
-    ) {
+    )
+        internal
+        view
+        returns (AttestationLib.Attestation memory att, bytes memory signatures, uint256 bitmap)
+    {
         att = helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
 
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
@@ -131,15 +128,12 @@ contract FullFlowTest is Test {
     function test_full_lifecycle() public {
         address origin = address(sourceRWA);
         uint256 originChainId = 11155111; // ETH Sepolia
-        uint256 targetChainId = 421614;   // Arb Sepolia
+        uint256 targetChainId = 421614; // Arb Sepolia
 
         // 1. Create attestation
         // 2. Collect 3 threshold signatures
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(origin, originChainId, targetChainId, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(origin, originChainId, targetChainId, 1);
 
         // 3. Compute expected mirror address BEFORE deployment
         address predicted = factory.computeMirrorAddress(att);
@@ -147,12 +141,8 @@ contract FullFlowTest is Test {
 
         // 4. User sends attestation via CCIP
         vm.prank(user);
-        bytes32 messageId = ccipSender.sendAttestation{value: 1 ether}(
-            TARGET_SELECTOR_ARB,
-            att,
-            sigs,
-            bitmap
-        );
+        bytes32 messageId =
+            ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_ARB, att, sigs, bitmap);
 
         // 5-6. MockCCIPRouter delivers to CCIPReceiver → calls factory.deployMirror()
         // (happens atomically in the mock)
@@ -187,37 +177,28 @@ contract FullFlowTest is Test {
         uint256 originChainId = 11155111;
 
         // Target 1: Arbitrum
-        (
-            AttestationLib.Attestation memory att1,
-            bytes memory sigs1,
-            uint256 bitmap1
-        ) = _buildSignedAttestation(origin, originChainId, 421614, 1);
+        (AttestationLib.Attestation memory att1, bytes memory sigs1, uint256 bitmap1) =
+            _buildSignedAttestation(origin, originChainId, 421614, 1);
 
         vm.prank(user);
-        ccipSender.sendAttestation{value: 1 ether}(TARGET_SELECTOR_ARB, att1, sigs1, bitmap1);
+        ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_ARB, att1, sigs1, bitmap1);
         address mirror1 = factory.computeMirrorAddress(att1);
 
         // Target 2: Base (need to warp past rate limit for same origin pair)
         // Note: Different target chain = different pair key, so NO rate limit conflict
-        (
-            AttestationLib.Attestation memory att2,
-            bytes memory sigs2,
-            uint256 bitmap2
-        ) = _buildSignedAttestation(origin, originChainId, 84532, 1);
+        (AttestationLib.Attestation memory att2, bytes memory sigs2, uint256 bitmap2) =
+            _buildSignedAttestation(origin, originChainId, 84532, 1);
 
         vm.prank(user);
-        ccipSender.sendAttestation{value: 1 ether}(TARGET_SELECTOR_BASE, att2, sigs2, bitmap2);
+        ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_BASE, att2, sigs2, bitmap2);
         address mirror2 = factory.computeMirrorAddress(att2);
 
         // Target 3: Optimism
-        (
-            AttestationLib.Attestation memory att3,
-            bytes memory sigs3,
-            uint256 bitmap3
-        ) = _buildSignedAttestation(origin, originChainId, 10, 1);
+        (AttestationLib.Attestation memory att3, bytes memory sigs3, uint256 bitmap3) =
+            _buildSignedAttestation(origin, originChainId, 10, 1);
 
         vm.prank(user);
-        ccipSender.sendAttestation{value: 1 ether}(TARGET_SELECTOR_OP, att3, sigs3, bitmap3);
+        ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_OP, att3, sigs3, bitmap3);
         address mirror3 = factory.computeMirrorAddress(att3);
 
         // All 3 are canonical
@@ -250,16 +231,12 @@ contract FullFlowTest is Test {
         uint256 targetChainId = 421614;
 
         // First deployment succeeds
-        (
-            AttestationLib.Attestation memory att1,
-            bytes memory sigs1,
-            uint256 bitmap1
-        ) = _buildSignedAttestation(origin, originChainId, targetChainId, 1);
+        (AttestationLib.Attestation memory att1, bytes memory sigs1, uint256 bitmap1) =
+            _buildSignedAttestation(origin, originChainId, targetChainId, 1);
 
         vm.prank(user);
-        bytes32 msg1 = ccipSender.sendAttestation{value: 1 ether}(
-            TARGET_SELECTOR_ARB, att1, sigs1, bitmap1
-        );
+        bytes32 msg1 =
+            ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_ARB, att1, sigs1, bitmap1);
         assertTrue(ccipReceiver.processedMessages(msg1), "First message processed");
 
         address mirror = factory.computeMirrorAddress(att1);
@@ -270,16 +247,12 @@ contract FullFlowTest is Test {
 
         // Second attestation for same pair (nonce=2) — factory will reject (MirrorAlreadyDeployed)
         // But CCIP message should still process (try/catch in receiver)
-        (
-            AttestationLib.Attestation memory att2,
-            bytes memory sigs2,
-            uint256 bitmap2
-        ) = _buildSignedAttestation(origin, originChainId, targetChainId, 2);
+        (AttestationLib.Attestation memory att2, bytes memory sigs2, uint256 bitmap2) =
+            _buildSignedAttestation(origin, originChainId, targetChainId, 2);
 
         vm.prank(user);
-        bytes32 msg2 = ccipSender.sendAttestation{value: 1 ether}(
-            TARGET_SELECTOR_ARB, att2, sigs2, bitmap2
-        );
+        bytes32 msg2 =
+            ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_ARB, att2, sigs2, bitmap2);
 
         // Message was processed (not reverted) even though deploy failed
         assertTrue(ccipReceiver.processedMessages(msg2), "Second message should be processed");

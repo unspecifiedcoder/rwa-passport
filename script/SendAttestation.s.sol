@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
 
 /// @title SendAttestation
 /// @notice Creates an attestation for MockRWA, signs it with 3 demo signers,
@@ -38,11 +38,8 @@ contract SendAttestation is Script {
         // 4. Send via CCIP
         vm.startBroadcast(deployerKey);
 
-        bytes32 messageId = CCIPSender(ccipSenderAddr).sendAttestation{value: (fee * 120) / 100}(
-            bnbSelector,
-            att,
-            signatures,
-            signerBitmap
+        bytes32 messageId = CCIPSender(ccipSenderAddr).sendAttestation{ value: (fee * 120) / 100 }(
+            bnbSelector, att, signatures, signerBitmap
         );
 
         vm.stopBroadcast();
@@ -55,12 +52,14 @@ contract SendAttestation is Script {
     }
 
     function _buildAttestation(address mockRwa)
-        internal view returns (AttestationLib.Attestation memory)
+        internal
+        view
+        returns (AttestationLib.Attestation memory)
     {
         return AttestationLib.Attestation({
             originContract: mockRwa,
-            originChainId: 43113,           // Avalanche Fuji
-            targetChainId: 97,              // BNB Chain Testnet
+            originChainId: 43113, // Avalanche Fuji
+            targetChainId: 97, // BNB Chain Testnet
             navRoot: keccak256("demo-nav-data"),
             complianceRoot: keccak256("demo-compliance"),
             lockedAmount: 1_000_000 ether,
@@ -69,10 +68,10 @@ contract SendAttestation is Script {
         });
     }
 
-    function _signAttestation(
-        AttestationLib.Attestation memory att,
-        address attRegBnb
-    ) internal returns (bytes memory signatures, uint256 signerBitmap) {
+    function _signAttestation(AttestationLib.Attestation memory att, address attRegBnb)
+        internal
+        returns (bytes memory signatures, uint256 signerBitmap)
+    {
         // Compute EIP-712 digest for the TARGET chain (BNB Testnet, chainId=97)
         bytes32 domainSep = AttestationLib.domainSeparator(97, attRegBnb);
         bytes32 digest = AttestationLib.toTypedDataHash(att, domainSep);

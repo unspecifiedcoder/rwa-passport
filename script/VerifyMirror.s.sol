@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../src/core/XythumToken.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../src/core/XythumToken.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 /// @title VerifyMirror
 /// @notice Verifies that the mirror token was deployed correctly on BNB Testnet
@@ -27,12 +27,12 @@ contract VerifyMirror is Script {
         // Reconstruct the attestation (must match what was sent)
         AttestationLib.Attestation memory att = AttestationLib.Attestation({
             originContract: mockRwaFuji,
-            originChainId: 43113,           // Avalanche Fuji
-            targetChainId: 97,              // BNB Chain Testnet
+            originChainId: 43113, // Avalanche Fuji
+            targetChainId: 97, // BNB Chain Testnet
             navRoot: keccak256("demo-nav-data"),
             complianceRoot: keccak256("demo-compliance"),
             lockedAmount: 1_000_000 ether,
-            timestamp: 0,                   // not used for address computation
+            timestamp: 0, // not used for address computation
             nonce: 2
         });
 

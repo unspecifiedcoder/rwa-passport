@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {CollateralVerifier} from "../../src/zk/CollateralVerifier.sol";
-import {IZKCollateral} from "../../src/interfaces/IZKCollateral.sol";
-import {MockGroth16Verifier} from "../helpers/MockCollateralVerifier.sol";
+import { Test } from "forge-std/Test.sol";
+import { CollateralVerifier } from "../../src/zk/CollateralVerifier.sol";
+import { IZKCollateral } from "../../src/interfaces/IZKCollateral.sol";
+import { MockGroth16Verifier } from "../helpers/MockCollateralVerifier.sol";
 
 /// @title CollateralVerifierTest
 /// @notice Unit tests for CollateralVerifier — ZK proof verification and storage
@@ -67,9 +67,8 @@ contract CollateralVerifierTest is Test {
 
     function test_verifyCollateralProof_valid() public {
         bytes memory proof = _buildMockProof(1);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         bytes32 proofId = verifier.verifyCollateralProof(proof, inputs);
@@ -78,8 +77,7 @@ contract CollateralVerifierTest is Test {
         assertTrue(proofId != bytes32(0), "proofId should be non-zero");
 
         // Verify stored data
-        (uint256 minValue, address asset, uint256 timestamp) =
-            verifier.getCollateralValue(proofId);
+        (uint256 minValue, address asset, uint256 timestamp) = verifier.getCollateralValue(proofId);
         assertEq(minValue, 100_000e18, "minimumValue should match");
         assertEq(asset, testAsset, "asset should match");
         assertEq(timestamp, block.timestamp, "timestamp should match");
@@ -90,9 +88,8 @@ contract CollateralVerifierTest is Test {
 
     function test_verifyCollateralProof_emits_event() public {
         bytes memory proof = _buildMockProof(10);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root")), ASSET_ID, 50_000e18, 2e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root")), ASSET_ID, 50_000e18, 2e18);
 
         vm.prank(prover);
         vm.expectEmit(false, true, false, true);
@@ -107,9 +104,8 @@ contract CollateralVerifierTest is Test {
 
     function test_verifyCollateralProof_replay_reverts() public {
         bytes memory proof = _buildMockProof(2);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root2")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root2")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         verifier.verifyCollateralProof(proof, inputs);
@@ -126,9 +122,8 @@ contract CollateralVerifierTest is Test {
     function test_verifyCollateralProof_unknown_asset_reverts() public {
         bytes memory proof = _buildMockProof(3);
         uint256 unknownAssetId = 999;
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root3")), unknownAssetId, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root3")), unknownAssetId, 100_000e18, 1e18);
 
         vm.prank(prover);
         vm.expectRevert(
@@ -142,9 +137,8 @@ contract CollateralVerifierTest is Test {
         mockGroth16.setShouldAccept(false);
 
         bytes memory proof = _buildMockProof(4);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root4")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root4")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         vm.expectRevert(CollateralVerifier.InvalidProof.selector);
@@ -166,9 +160,8 @@ contract CollateralVerifierTest is Test {
     function test_verifyCollateralProof_multiple_proofs_unique_ids() public {
         bytes memory proof1 = _buildMockProof(6);
         bytes memory proof2 = _buildMockProof(7);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root6")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root6")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         bytes32 id1 = verifier.verifyCollateralProof(proof1, inputs);
@@ -183,9 +176,8 @@ contract CollateralVerifierTest is Test {
 
     function test_getCollateralValue_returns_stored() public {
         bytes memory proof = _buildMockProof(20);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("rootX")), ASSET_ID, 250_000e18, 3e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("rootX")), ASSET_ID, 250_000e18, 3e18);
 
         vm.prank(prover);
         bytes32 proofId = verifier.verifyCollateralProof(proof, inputs);
@@ -226,9 +218,8 @@ contract CollateralVerifierTest is Test {
 
     function test_invalidateProof_deactivates() public {
         bytes memory proof = _buildMockProof(30);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root30")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root30")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         bytes32 proofId = verifier.verifyCollateralProof(proof, inputs);
@@ -241,9 +232,8 @@ contract CollateralVerifierTest is Test {
 
     function test_invalidateProof_onlyOwner() public {
         bytes memory proof = _buildMockProof(31);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root31")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root31")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         bytes32 proofId = verifier.verifyCollateralProof(proof, inputs);
@@ -255,9 +245,8 @@ contract CollateralVerifierTest is Test {
 
     function test_invalidateProof_already_inactive_reverts() public {
         bytes memory proof = _buildMockProof(32);
-        uint256[] memory inputs = _buildPublicInputs(
-            uint256(keccak256("root32")), ASSET_ID, 100_000e18, 1e18
-        );
+        uint256[] memory inputs =
+            _buildPublicInputs(uint256(keccak256("root32")), ASSET_ID, 100_000e18, 1e18);
 
         vm.prank(prover);
         bytes32 proofId = verifier.verifyCollateralProof(proof, inputs);
@@ -265,9 +254,7 @@ contract CollateralVerifierTest is Test {
         verifier.invalidateProof(proofId);
 
         // Second invalidation should revert
-        vm.expectRevert(
-            abi.encodeWithSelector(CollateralVerifier.ProofNotActive.selector, proofId)
-        );
+        vm.expectRevert(abi.encodeWithSelector(CollateralVerifier.ProofNotActive.selector, proofId));
         verifier.invalidateProof(proofId);
     }
 }

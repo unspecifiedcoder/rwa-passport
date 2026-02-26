@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {ISignerRegistry} from "../interfaces/ISignerRegistry.sol";
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { ISignerRegistry } from "../interfaces/ISignerRegistry.sol";
 
 /// @title SignerRegistry
 /// @author Xythum Protocol

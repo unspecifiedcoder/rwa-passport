@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {AttestationRegistry} from "../src/core/AttestationRegistry.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {XythumToken} from "../src/core/XythumToken.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import { XythumToken } from "../src/core/XythumToken.sol";
 
 /// @title DirectDeploy
 /// @notice Calls deployMirror() directly on BNB Testnet, bypassing CCIP.
@@ -50,14 +50,14 @@ contract DirectDeploy is Script {
         // 2. Build attestation (nonce=3 to avoid collision with prior attempts)
         AttestationLib.Attestation memory att = AttestationLib.Attestation({
             originContract: mockRwaFuji,
-            originChainId: 43113,           // Avalanche Fuji
-            targetChainId: 97,              // BNB Chain Testnet
+            originChainId: 43113, // Avalanche Fuji
+            targetChainId: 97, // BNB Chain Testnet
             navRoot: keccak256("demo-nav-data"),
             complianceRoot: keccak256("demo-compliance"),
             lockedAmount: 1_000_000 ether,
             timestamp: block.timestamp,
-            nonce: 3                        // nonce 3 to avoid collision
-        });
+            nonce: 3 // nonce 3 to avoid collision
+         });
 
         console.log("Attestation timestamp:", att.timestamp);
 

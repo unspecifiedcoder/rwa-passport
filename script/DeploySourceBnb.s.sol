@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {MockRWA} from "../src/mocks/MockRWA.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { MockRWA } from "../src/mocks/MockRWA.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
 
 /// @title DeploySourceBnb
 /// @notice Deploys source-chain contracts on BNB Testnet (for reverse direction: BNB → Fuji)

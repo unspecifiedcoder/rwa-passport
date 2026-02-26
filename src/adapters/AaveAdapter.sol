@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {IZKCollateral} from "../interfaces/IZKCollateral.sol";
-import {ICanonicalFactory} from "../interfaces/ICanonicalFactory.sol";
-import {IXythumToken} from "../interfaces/IXythumToken.sol";
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { IZKCollateral } from "../interfaces/IZKCollateral.sol";
+import { ICanonicalFactory } from "../interfaces/ICanonicalFactory.sol";
+import { IXythumToken } from "../interfaces/IXythumToken.sol";
 
 /// @title AaveAdapter
 /// @author Xythum Protocol
@@ -25,11 +25,7 @@ contract AaveAdapter is Ownable2Step {
     error InsufficientReceiptBalance(address user, uint256 requested, uint256 available);
 
     // ─── Events ──────────────────────────────────────────────────────
-    event CollateralDeposited(
-        address indexed user,
-        bytes32 indexed proofId,
-        uint256 receiptAmount
-    );
+    event CollateralDeposited(address indexed user, bytes32 indexed proofId, uint256 receiptAmount);
     event ReceiptRedeemed(address indexed user, uint256 amount);
     event MaxProofAgeUpdated(uint256 newAge);
     event ReceiptTokenUpdated(address newToken);
@@ -56,12 +52,9 @@ contract AaveAdapter is Ownable2Step {
     /// @param _factory Address of the CanonicalFactory
     /// @param _maxProofAge Maximum proof age in seconds
     /// @param _owner Contract owner
-    constructor(
-        address _zkVerifier,
-        address _factory,
-        uint256 _maxProofAge,
-        address _owner
-    ) Ownable(_owner) {
+    constructor(address _zkVerifier, address _factory, uint256 _maxProofAge, address _owner)
+        Ownable(_owner)
+    {
         zkVerifier = IZKCollateral(_zkVerifier);
         factory = ICanonicalFactory(_factory);
         maxProofAge = _maxProofAge;

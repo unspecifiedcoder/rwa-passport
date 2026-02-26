@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {AttestationLib} from "../libraries/AttestationLib.sol";
+import { AttestationLib } from "../libraries/AttestationLib.sol";
 
 /// @title ICanonicalFactory
 /// @author Xythum Protocol
@@ -49,7 +49,9 @@ interface ICanonicalFactory {
     /// @param att The attestation data
     /// @return The predicted mirror address
     function computeMirrorAddress(AttestationLib.Attestation calldata att)
-        external view returns (address);
+        external
+        view
+        returns (address);
 
     /// @notice Check if an address is a canonical Xythum mirror
     /// @param mirror Address to check
@@ -68,5 +70,8 @@ interface ICanonicalFactory {
     /// @param offset Starting index
     /// @param limit Maximum number of mirrors to return
     /// @return result Array of mirror addresses
-    function getMirrors(uint256 offset, uint256 limit) external view returns (address[] memory result);
+    function getMirrors(uint256 offset, uint256 limit)
+        external
+        view
+        returns (address[] memory result);
 }

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
 
 /// @title DirectMirrorDeploy
 /// @notice Deploy a mirror via the direct path (no CCIP, instant).
@@ -63,10 +63,11 @@ contract DirectMirrorDeploy is Script {
         });
     }
 
-    function _signAttestation(
-        AttestationLib.Attestation memory att,
-        address factory
-    ) internal view returns (bytes memory) {
+    function _signAttestation(AttestationLib.Attestation memory att, address factory)
+        internal
+        view
+        returns (bytes memory)
+    {
         address attRegistry = address(CanonicalFactory(factory).attestationRegistry());
         bytes32 domainSep = AttestationLib.domainSeparator(block.chainid, attRegistry);
         bytes32 digest = AttestationLib.toTypedDataHash(att, domainSep);

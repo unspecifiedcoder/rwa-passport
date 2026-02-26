@@ -12,20 +12,16 @@ interface IZKCollateral {
     /// @param minimumValue The minimum value proven
     /// @param timestamp When the proof was verified
     event CollateralProofVerified(
-        bytes32 indexed proofId,
-        address indexed asset,
-        uint256 minimumValue,
-        uint256 timestamp
+        bytes32 indexed proofId, address indexed asset, uint256 minimumValue, uint256 timestamp
     );
 
     /// @notice Verify a zero-knowledge collateral proof
     /// @param proof The ZK proof bytes
     /// @param publicInputs Public inputs to the circuit
     /// @return proofId Unique identifier for the verified proof
-    function verifyCollateralProof(
-        bytes calldata proof,
-        uint256[] calldata publicInputs
-    ) external returns (bytes32 proofId);
+    function verifyCollateralProof(bytes calldata proof, uint256[] calldata publicInputs)
+        external
+        returns (bytes32 proofId);
 
     /// @notice Get the verified minimum collateral value for a proof
     /// @param proofId The proof identifier
@@ -33,5 +29,7 @@ interface IZKCollateral {
     /// @return asset The collateral asset address
     /// @return timestamp When the proof was verified
     function getCollateralValue(bytes32 proofId)
-        external view returns (uint256 minValue, address asset, uint256 timestamp);
+        external
+        view
+        returns (uint256 minValue, address asset, uint256 timestamp);
 }

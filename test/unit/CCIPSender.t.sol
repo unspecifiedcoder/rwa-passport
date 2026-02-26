@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {CCIPSender} from "../../src/ccip/CCIPSender.sol";
-import {MockCCIPRouter} from "../helpers/MockCCIPRouter.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {TestConstants} from "../helpers/TestConstants.sol";
+import { Test } from "forge-std/Test.sol";
+import { CCIPSender } from "../../src/ccip/CCIPSender.sol";
+import { MockCCIPRouter } from "../helpers/MockCCIPRouter.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { TestConstants } from "../helpers/TestConstants.sol";
 
 /// @title CCIPSenderTest
 /// @notice Unit tests for CCIPSender — source chain attestation dispatch
@@ -101,7 +101,7 @@ contract CCIPSenderTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(CCIPSender.UnsupportedChain.selector, unsupportedSelector)
         );
-        sender.sendAttestation{value: 1 ether}(unsupportedSelector, att, hex"", 0);
+        sender.sendAttestation{ value: 1 ether }(unsupportedSelector, att, hex"", 0);
     }
 
     function test_sendAttestation_receiver_not_set_reverts() public {
@@ -112,10 +112,8 @@ contract CCIPSenderTest is Test {
         AttestationLib.Attestation memory att = _buildTestAtt();
 
         vm.prank(user);
-        vm.expectRevert(
-            abi.encodeWithSelector(CCIPSender.ReceiverNotSet.selector, newSelector)
-        );
-        sender.sendAttestation{value: 1 ether}(newSelector, att, hex"", 0);
+        vm.expectRevert(abi.encodeWithSelector(CCIPSender.ReceiverNotSet.selector, newSelector));
+        sender.sendAttestation{ value: 1 ether }(newSelector, att, hex"", 0);
     }
 
     function test_sendAttestation_insufficient_fee_reverts() public {
@@ -124,7 +122,7 @@ contract CCIPSenderTest is Test {
 
         vm.prank(user);
         vm.expectRevert(); // InsufficientFee
-        sender.sendAttestation{value: 0.1 ether}(TARGET_SELECTOR, att, hex"", 0);
+        sender.sendAttestation{ value: 0.1 ether }(TARGET_SELECTOR, att, hex"", 0);
     }
 
     function test_sendAttestation_refunds_excess() public {
@@ -137,7 +135,7 @@ contract CCIPSenderTest is Test {
 
         uint256 balanceBefore = user.balance;
         vm.prank(user);
-        sender.sendAttestation{value: 1 ether}(TARGET_SELECTOR, att, hex"aabb", 7);
+        sender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR, att, hex"aabb", 7);
         uint256 balanceAfter = user.balance;
 
         // User should get 0.99 ETH back
@@ -153,9 +151,7 @@ contract CCIPSenderTest is Test {
 
     function test_estimateFee_receiver_not_set_reverts() public {
         uint64 noReceiver = 99999;
-        vm.expectRevert(
-            abi.encodeWithSelector(CCIPSender.ReceiverNotSet.selector, noReceiver)
-        );
+        vm.expectRevert(abi.encodeWithSelector(CCIPSender.ReceiverNotSet.selector, noReceiver));
         sender.estimateFee(noReceiver, hex"deadbeef");
     }
 
@@ -189,6 +185,6 @@ contract CCIPSenderTest is Test {
 
 /// @notice Dummy receiver that accepts any ccipReceive call without reverting
 contract DummyCCIPReceiver {
-    fallback() external payable {}
-    receive() external payable {}
+    fallback() external payable { }
+    receive() external payable { }
 }

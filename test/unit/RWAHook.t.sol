@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {Deployers} from "@uniswap/v4-core/test/utils/Deployers.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
-import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
-import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
-import {Currency, CurrencyLibrary} from "@uniswap/v4-core/src/types/Currency.sol";
-import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
-import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
-import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
-import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
-import {PoolSwapTest} from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
+import { Test } from "forge-std/Test.sol";
+import { Deployers } from "@uniswap/v4-core/test/utils/Deployers.sol";
+import { IPoolManager } from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import { IHooks } from "@uniswap/v4-core/src/interfaces/IHooks.sol";
+import { Hooks } from "@uniswap/v4-core/src/libraries/Hooks.sol";
+import { PoolKey } from "@uniswap/v4-core/src/types/PoolKey.sol";
+import { PoolId, PoolIdLibrary } from "@uniswap/v4-core/src/types/PoolId.sol";
+import { Currency, CurrencyLibrary } from "@uniswap/v4-core/src/types/Currency.sol";
+import { BalanceDelta } from "@uniswap/v4-core/src/types/BalanceDelta.sol";
+import { LPFeeLibrary } from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
+import { TickMath } from "@uniswap/v4-core/src/libraries/TickMath.sol";
+import { MockERC20 } from "solmate/src/test/utils/mocks/MockERC20.sol";
+import { PoolSwapTest } from "@uniswap/v4-core/src/test/PoolSwapTest.sol";
 
-import {RWAHook} from "../../src/hooks/RWAHook.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {HookMiner} from "../helpers/HookMiner.sol";
+import { RWAHook } from "../../src/hooks/RWAHook.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { HookMiner } from "../helpers/HookMiner.sol";
 
 /// @title RWAHookTest
 /// @notice Unit tests for RWAHook — V4 hook with compliance, dynamic fees, pause
@@ -73,10 +73,7 @@ contract RWAHookTest is Test, Deployers {
         attestationRegistry = new AttestationRegistry(address(signerRegistry), 24 hours, 1 hours);
         compliance = new MockCompliance();
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         // 2. Deploy canonical mirror via factory
@@ -93,10 +90,8 @@ contract RWAHookTest is Test, Deployers {
 
         // 5. Mine and deploy RWAHook at valid address
         uint160 flags = uint160(
-            Hooks.BEFORE_INITIALIZE_FLAG |
-            Hooks.BEFORE_ADD_LIQUIDITY_FLAG |
-            Hooks.BEFORE_SWAP_FLAG |
-            Hooks.AFTER_SWAP_FLAG
+            Hooks.BEFORE_INITIALIZE_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_SWAP_FLAG
+                | Hooks.AFTER_SWAP_FLAG
         );
 
         (address hookAddr, bytes32 salt) = HookMiner.find(
@@ -107,7 +102,7 @@ contract RWAHookTest is Test, Deployers {
         );
 
         // Deploy hook at the mined address using CREATE2
-        hook = new RWAHook{salt: salt}(manager, address(factory), owner);
+        hook = new RWAHook{ salt: salt }(manager, address(factory), owner);
         require(address(hook) == hookAddr, "Hook address mismatch");
 
         // 6. Whitelist key addresses in compliance
@@ -178,11 +173,12 @@ contract RWAHookTest is Test, Deployers {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            originContract, originChainId, targetChainId, nonce
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) signerIndices[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            signerIndices[i] = i;
+        }
         bytes32 domainSep = attestationRegistry.DOMAIN_SEPARATOR();
         (bytes memory sigs, uint256 bitmap) = helper.signAttestation(att, domainSep, signerIndices);
         mirror = factory.deployMirror(att, sigs, bitmap);
@@ -251,7 +247,7 @@ contract RWAHookTest is Test, Deployers {
                 amountSpecified: -10,
                 sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+            PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
         );
         vm.stopPrank();
@@ -284,7 +280,7 @@ contract RWAHookTest is Test, Deployers {
                 amountSpecified: -10,
                 sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+            PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
         );
         vm.stopPrank();
@@ -295,7 +291,7 @@ contract RWAHookTest is Test, Deployers {
     function test_beforeSwap_dynamic_fee_fresh_nav() public view {
         // NAV was just set in setUp (lastNAVUpdate = block.timestamp)
         // Fee should be baseFee = 500
-        (, , , uint256 lastNAV, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV,) = hook.poolConfigs(poolId);
         uint256 age = block.timestamp - lastNAV;
         assertTrue(age <= 1 hours, "NAV should be fresh");
     }
@@ -308,7 +304,7 @@ contract RWAHookTest is Test, Deployers {
         _doSwap(true, -10);
 
         // Verify via poolConfigs that NAV is stale
-        (, , , uint256 lastNAV, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV,) = hook.poolConfigs(poolId);
         uint256 age = block.timestamp - lastNAV;
         assertTrue(age >= 6 hours, "NAV should be stale");
     }
@@ -321,7 +317,7 @@ contract RWAHookTest is Test, Deployers {
         _doSwap(true, -10);
 
         // Verify NAV age is in interpolation range
-        (, , , uint256 lastNAV, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV,) = hook.poolConfigs(poolId);
         uint256 age = block.timestamp - lastNAV;
         assertTrue(age > 1 hours && age < 6 hours, "NAV should be aging");
     }
@@ -334,7 +330,7 @@ contract RWAHookTest is Test, Deployers {
         hook.updateNAV(poolId);
 
         // Verify NAV is fresh again
-        (, , , uint256 lastNAV, ) = hook.poolConfigs(poolId);
+        (,,, uint256 lastNAV,) = hook.poolConfigs(poolId);
         assertEq(lastNAV, block.timestamp, "NAV should be refreshed");
     }
 
@@ -441,7 +437,7 @@ contract RWAHookTest is Test, Deployers {
                 amountSpecified: -10,
                 sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+            PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             abi.encode(nonCompliant)
         );
     }
@@ -464,7 +460,7 @@ contract RWAHookTest is Test, Deployers {
                 amountSpecified: -10,
                 sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+            PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
         );
     }
@@ -487,7 +483,7 @@ contract RWAHookTest is Test, Deployers {
                 amountSpecified: -10,
                 sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
-            PoolSwapTest.TestSettings({takeClaims: false, settleUsingBurn: false}),
+            PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             abi.encode(compliantUser)
         );
     }
@@ -515,5 +511,4 @@ contract RWAHookTest is Test, Deployers {
             abi.encode(nonCompliantLP)
         );
     }
-
 }

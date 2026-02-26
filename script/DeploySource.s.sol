@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {MockRWA} from "../src/mocks/MockRWA.sol";
-import {SignerRegistry} from "../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../src/core/AttestationRegistry.sol";
-import {CCIPSender} from "../src/ccip/CCIPSender.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { MockRWA } from "../src/mocks/MockRWA.sol";
+import { SignerRegistry } from "../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
+import { CCIPSender } from "../src/ccip/CCIPSender.sol";
 
 /// @title DeploySource
 /// @notice Deploys source-chain contracts on Avalanche Fuji
@@ -61,8 +61,8 @@ contract DeploySource is Script {
         // 4. Deploy AttestationRegistry
         AttestationRegistry attReg = new AttestationRegistry(
             address(signerReg),
-            24 hours,   // maxStaleness
-            1 hours     // rateLimitPeriod
+            24 hours, // maxStaleness
+            1 hours // rateLimitPeriod
         );
         console.log("AttestationRegistry:", address(attReg));
 

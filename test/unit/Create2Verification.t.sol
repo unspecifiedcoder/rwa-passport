@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
 
 /// @title Create2VerificationTest
 /// @notice Verify that CanonicalFactory's CREATE2 deployment matches Ethereum's spec.
@@ -36,10 +36,7 @@ contract Create2VerificationTest is Test {
         compliance = new MockCompliance();
         compliance.setEnforceCompliance(false);
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            address(this)
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), address(this)
         );
     }
 
@@ -50,14 +47,16 @@ contract Create2VerificationTest is Test {
         uint256 originChain,
         uint256 targetChain,
         uint256 nonce
-    ) internal view returns (
-        AttestationLib.Attestation memory att,
-        bytes memory sigs,
-        uint256 bitmap
-    ) {
+    )
+        internal
+        view
+        returns (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap)
+    {
         att = helper.buildAttestation(origin, originChain, targetChain, nonce);
         uint256[] memory idx = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) idx[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            idx[i] = i;
+        }
         bytes32 domainSep = attestationRegistry.DOMAIN_SEPARATOR();
         (sigs, bitmap) = helper.signAttestation(att, domainSep, idx);
     }
@@ -69,37 +68,36 @@ contract Create2VerificationTest is Test {
     /// @notice Manually compute CREATE2 address and verify it matches both
     ///         factory.computeMirrorAddress() and the actual deployed address.
     function test_create2_matches_ethereum_spec() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xAAAA), 1, 42161, 1);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xAAAA), 1, 42161, 1);
 
         // 1. Get predicted address from factory
         address predicted = factory.computeMirrorAddress(att);
 
         // 2. Manually compute CREATE2 address
         // CREATE2: address = keccak256(0xff ++ deployer ++ salt ++ keccak256(initCode))[12:]
-        bytes32 salt = keccak256(abi.encode(att.originContract, att.originChainId, att.targetChainId));
+        bytes32 salt =
+            keccak256(abi.encode(att.originContract, att.originChainId, att.targetChainId));
 
         // initCode = creation code + constructor args
         bytes memory constructorArgs = abi.encode(
-            "Xythum Mirror",        // name
-            "xRWA",                 // symbol
-            att.originContract,     // _originContract
-            att.originChainId,      // _originChainId
-            address(compliance),    // _compliance
-            att.lockedAmount        // _mintCap
+            "Xythum Mirror", // name
+            "xRWA", // symbol
+            att.originContract, // _originContract
+            att.originChainId, // _originChainId
+            address(compliance), // _compliance
+            att.lockedAmount // _mintCap
         );
         bytes memory initCode = abi.encodePacked(type(XythumToken).creationCode, constructorArgs);
         bytes32 initCodeHash = keccak256(initCode);
 
-        address manual = address(uint160(uint256(keccak256(abi.encodePacked(
-            bytes1(0xff),
-            address(factory),
-            salt,
-            initCodeHash
-        )))));
+        address manual = address(
+            uint160(
+                uint256(
+                    keccak256(abi.encodePacked(bytes1(0xff), address(factory), salt, initCodeHash))
+                )
+            )
+        );
 
         // 3. Verify manual matches factory prediction
         assertEq(manual, predicted, "Manual CREATE2 should match factory.computeMirrorAddress");
@@ -112,9 +110,8 @@ contract Create2VerificationTest is Test {
 
     /// @notice CREATE2 address is deterministic — same inputs always give same address
     function test_create2_deterministic_across_calls() public view {
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            address(0xBBBB), 1, 42161, 1
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(address(0xBBBB), 1, 42161, 1);
 
         address addr1 = factory.computeMirrorAddress(att);
         address addr2 = factory.computeMirrorAddress(att);
@@ -127,15 +124,11 @@ contract Create2VerificationTest is Test {
     /// @notice Different factory addresses produce different CREATE2 results
     function test_create2_different_deployer_different_address() public {
         CanonicalFactory factory2 = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury2"),
-            address(this)
+            address(attestationRegistry), address(compliance), makeAddr("treasury2"), address(this)
         );
 
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            address(0xCCCC), 1, 42161, 1
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(address(0xCCCC), 1, 42161, 1);
 
         address addr1 = factory.computeMirrorAddress(att);
         address addr2 = factory2.computeMirrorAddress(att);
@@ -145,11 +138,8 @@ contract Create2VerificationTest is Test {
 
     /// @notice Verify code at deployed address matches XythumToken
     function test_create2_deployed_code_matches() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xDDDD), 1, 42161, 2);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xDDDD), 1, 42161, 2);
 
         address mirror = factory.deployMirror(att, sigs, bitmap);
 

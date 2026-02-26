@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {CCIPReceiver as ChainlinkCCIPReceiver} from
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { CCIPReceiver as ChainlinkCCIPReceiver } from
     "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
-import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
-import {ICanonicalFactory} from "../interfaces/ICanonicalFactory.sol";
-import {AttestationLib} from "../libraries/AttestationLib.sol";
+import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import { ICanonicalFactory } from "../interfaces/ICanonicalFactory.sol";
+import { AttestationLib } from "../libraries/AttestationLib.sol";
 
 /// @title XythumCCIPReceiver
 /// @author Xythum Protocol
@@ -27,22 +27,14 @@ contract XythumCCIPReceiver is ChainlinkCCIPReceiver, Ownable2Step {
     // ─── Events ──────────────────────────────────────────────────────
     /// @notice Emitted when a CCIP message is received and processed
     event AttestationReceived(
-        bytes32 indexed messageId,
-        uint64 indexed sourceChainSelector,
-        uint8 messageType
+        bytes32 indexed messageId, uint64 indexed sourceChainSelector, uint8 messageType
     );
 
     /// @notice Emitted when a mirror is successfully deployed via CCIP
-    event MirrorDeployedViaCCIP(
-        bytes32 indexed messageId,
-        address indexed mirror
-    );
+    event MirrorDeployedViaCCIP(bytes32 indexed messageId, address indexed mirror);
 
     /// @notice Emitted when a deployment fails (logged, not reverted)
-    event DeploymentFailed(
-        bytes32 indexed messageId,
-        bytes reason
-    );
+    event DeploymentFailed(bytes32 indexed messageId, bytes reason);
 
     // ─── Immutables ──────────────────────────────────────────────────
     /// @notice The CanonicalFactory for deploying mirrors
@@ -60,11 +52,10 @@ contract XythumCCIPReceiver is ChainlinkCCIPReceiver, Ownable2Step {
     /// @param _router Address of the Chainlink CCIP router
     /// @param _factory Address of the CanonicalFactory
     /// @param _owner Contract owner
-    constructor(
-        address _router,
-        address _factory,
-        address _owner
-    ) ChainlinkCCIPReceiver(_router) Ownable(_owner) {
+    constructor(address _router, address _factory, address _owner)
+        ChainlinkCCIPReceiver(_router)
+        Ownable(_owner)
+    {
         factory = ICanonicalFactory(_factory);
     }
 
@@ -74,11 +65,10 @@ contract XythumCCIPReceiver is ChainlinkCCIPReceiver, Ownable2Step {
     /// @param sourceChain Source chain selector
     /// @param sender Sender address
     /// @param allowed Whether to allow
-    function setAllowedSender(
-        uint64 sourceChain,
-        address sender,
-        bool allowed
-    ) external onlyOwner {
+    function setAllowedSender(uint64 sourceChain, address sender, bool allowed)
+        external
+        onlyOwner
+    {
         allowedSenders[sourceChain][sender] = allowed;
     }
 
@@ -86,9 +76,7 @@ contract XythumCCIPReceiver is ChainlinkCCIPReceiver, Ownable2Step {
 
     /// @notice Handle incoming CCIP messages
     /// @dev Overrides Chainlink's CCIPReceiver._ccipReceive
-    function _ccipReceive(
-        Client.Any2EVMMessage memory message
-    ) internal override {
+    function _ccipReceive(Client.Any2EVMMessage memory message) internal override {
         // 1. Extract sender
         address sender = abi.decode(message.sender, (address));
 
@@ -104,8 +92,8 @@ contract XythumCCIPReceiver is ChainlinkCCIPReceiver, Ownable2Step {
         processedMessages[message.messageId] = true;
 
         // 4. Decode payload
-        (uint8 messageType, bytes memory attEncoded, bytes memory signatures, uint256 signerBitmap) =
-            abi.decode(message.data, (uint8, bytes, bytes, uint256));
+        (uint8 messageType, bytes memory attEncoded, bytes memory signatures, uint256 signerBitmap)
+        = abi.decode(message.data, (uint8, bytes, bytes, uint256));
 
         // 5. Route by message type
         if (messageType == MESSAGE_TYPE_DEPLOY) {

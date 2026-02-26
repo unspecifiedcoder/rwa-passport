@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
-import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
-import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
-import {LPFeeLibrary} from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
-import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
-import {PoolId, PoolIdLibrary} from "@uniswap/v4-core/src/types/PoolId.sol";
-import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
-import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
-import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "@uniswap/v4-core/src/types/BeforeSwapDelta.sol";
-import {ICanonicalFactory} from "../interfaces/ICanonicalFactory.sol";
-import {IXythumToken} from "../interfaces/IXythumToken.sol";
+import { IHooks } from "@uniswap/v4-core/src/interfaces/IHooks.sol";
+import { IPoolManager } from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
+import { Hooks } from "@uniswap/v4-core/src/libraries/Hooks.sol";
+import { LPFeeLibrary } from "@uniswap/v4-core/src/libraries/LPFeeLibrary.sol";
+import { PoolKey } from "@uniswap/v4-core/src/types/PoolKey.sol";
+import { PoolId, PoolIdLibrary } from "@uniswap/v4-core/src/types/PoolId.sol";
+import { Currency } from "@uniswap/v4-core/src/types/Currency.sol";
+import { BalanceDelta } from "@uniswap/v4-core/src/types/BalanceDelta.sol";
+import {
+    BeforeSwapDelta, BeforeSwapDeltaLibrary
+} from "@uniswap/v4-core/src/types/BeforeSwapDelta.sol";
+import { ICanonicalFactory } from "../interfaces/ICanonicalFactory.sol";
+import { IXythumToken } from "../interfaces/IXythumToken.sol";
 
 /// @title RWAHook
 /// @author Xythum Protocol
@@ -43,16 +45,16 @@ contract RWAHook is IHooks {
     // ─── Structs ─────────────────────────────────────────────────────
     /// @notice Per-pool configuration
     struct PoolConfig {
-        address xythumToken;    // which token in the pair is the mirror
-        uint24 baseFee;         // base fee in hundredths of bps (500 = 5 bps)
-        uint24 staleFee;        // elevated fee when NAV is stale
-        uint256 lastNAVUpdate;  // timestamp of last NAV attestation
+        address xythumToken; // which token in the pair is the mirror
+        uint24 baseFee; // base fee in hundredths of bps (500 = 5 bps)
+        uint24 staleFee; // elevated fee when NAV is stale
+        uint256 lastNAVUpdate; // timestamp of last NAV attestation
         bool active;
     }
 
     // ─── Constants ───────────────────────────────────────────────────
-    uint24 public constant DEFAULT_BASE_FEE = 500;    // 5 bps
-    uint24 public constant DEFAULT_STALE_FEE = 5000;   // 50 bps
+    uint24 public constant DEFAULT_BASE_FEE = 500; // 5 bps
+    uint24 public constant DEFAULT_STALE_FEE = 5000; // 50 bps
     uint256 public constant NAV_FRESH_WINDOW = 1 hours;
     uint256 public constant NAV_STALE_WINDOW = 6 hours;
 
@@ -65,11 +67,7 @@ contract RWAHook is IHooks {
     mapping(PoolId => PoolConfig) public poolConfigs;
 
     // ─── Constructor ─────────────────────────────────────────────────
-    constructor(
-        IPoolManager _poolManager,
-        address _factory,
-        address _owner
-    ) {
+    constructor(IPoolManager _poolManager, address _factory, address _owner) {
         poolManager = _poolManager;
         factory = ICanonicalFactory(_factory);
         owner = _owner;
@@ -217,22 +215,62 @@ contract RWAHook is IHooks {
     // ─── Non-implemented Callbacks (revert) ──────────────────────────
 
     function afterInitialize(address, PoolKey calldata, uint160, int24)
-        external pure override returns (bytes4) { revert HookNotImplemented(); }
+        external
+        pure
+        override
+        returns (bytes4)
+    {
+        revert HookNotImplemented();
+    }
 
-    function afterAddLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, BalanceDelta, BalanceDelta, bytes calldata)
-        external pure override returns (bytes4, BalanceDelta) { revert HookNotImplemented(); }
+    function afterAddLiquidity(
+        address,
+        PoolKey calldata,
+        IPoolManager.ModifyLiquidityParams calldata,
+        BalanceDelta,
+        BalanceDelta,
+        bytes calldata
+    ) external pure override returns (bytes4, BalanceDelta) {
+        revert HookNotImplemented();
+    }
 
-    function beforeRemoveLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, bytes calldata)
-        external pure override returns (bytes4) { revert HookNotImplemented(); }
+    function beforeRemoveLiquidity(
+        address,
+        PoolKey calldata,
+        IPoolManager.ModifyLiquidityParams calldata,
+        bytes calldata
+    ) external pure override returns (bytes4) {
+        revert HookNotImplemented();
+    }
 
-    function afterRemoveLiquidity(address, PoolKey calldata, IPoolManager.ModifyLiquidityParams calldata, BalanceDelta, BalanceDelta, bytes calldata)
-        external pure override returns (bytes4, BalanceDelta) { revert HookNotImplemented(); }
+    function afterRemoveLiquidity(
+        address,
+        PoolKey calldata,
+        IPoolManager.ModifyLiquidityParams calldata,
+        BalanceDelta,
+        BalanceDelta,
+        bytes calldata
+    ) external pure override returns (bytes4, BalanceDelta) {
+        revert HookNotImplemented();
+    }
 
     function beforeDonate(address, PoolKey calldata, uint256, uint256, bytes calldata)
-        external pure override returns (bytes4) { revert HookNotImplemented(); }
+        external
+        pure
+        override
+        returns (bytes4)
+    {
+        revert HookNotImplemented();
+    }
 
     function afterDonate(address, PoolKey calldata, uint256, uint256, bytes calldata)
-        external pure override returns (bytes4) { revert HookNotImplemented(); }
+        external
+        pure
+        override
+        returns (bytes4)
+    {
+        revert HookNotImplemented();
+    }
 
     // ─── Admin / NAV Functions ───────────────────────────────────────
 

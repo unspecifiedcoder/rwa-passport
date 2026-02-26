@@ -2,10 +2,10 @@
 pragma solidity ^0.8.24;
 
 import "forge-std/Script.sol";
-import {MockRWA} from "../src/mocks/MockRWA.sol";
-import {AttestationLib} from "../src/libraries/AttestationLib.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../src/core/XythumToken.sol";
+import { MockRWA } from "../src/mocks/MockRWA.sol";
+import { AttestationLib } from "../src/libraries/AttestationLib.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../src/core/XythumToken.sol";
 
 /// @title E2ELiveTest
 /// @notice Full end-to-end test: Deploy MockRWA on BNB → Mirror on Fuji → Mint → Transfer → Verify
@@ -58,11 +58,11 @@ contract DeployMirrorFuji is Script {
         // Build attestation
         AttestationLib.Attestation memory att = AttestationLib.Attestation({
             originContract: originRwa,
-            originChainId: 97,         // BNB Testnet
-            targetChainId: 43113,      // Fuji
+            originChainId: 97, // BNB Testnet
+            targetChainId: 43113, // Fuji
             navRoot: keccak256("e2e-test-nav"),
             complianceRoot: keccak256("e2e-test-compliance"),
-            lockedAmount: 500_000 ether,  // 500K token mint cap
+            lockedAmount: 500_000 ether, // 500K token mint cap
             timestamp: block.timestamp,
             nonce: 1
         });
@@ -174,9 +174,15 @@ contract MintAndTransferFuji is Script {
         console.log("=== RESULT ===");
         if (!deployerAuthorized) {
             console.log("CANNOT MINT: Deployer is not an authorizedMinter.");
-            console.log("Only the CanonicalFactory contract can mint, and it has no public mint function.");
-            console.log("This is a MISSING FEATURE: CanonicalFactory needs a `mintMirror()` function");
-            console.log("or the factory owner needs to call setAuthorizedMinter to allow external minting.");
+            console.log(
+                "Only the CanonicalFactory contract can mint, and it has no public mint function."
+            );
+            console.log(
+                "This is a MISSING FEATURE: CanonicalFactory needs a `mintMirror()` function"
+            );
+            console.log(
+                "or the factory owner needs to call setAuthorizedMinter to allow external minting."
+            );
         }
 
         console.log("");

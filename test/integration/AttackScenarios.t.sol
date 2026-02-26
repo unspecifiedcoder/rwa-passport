@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../../src/core/CanonicalFactory.sol";
-import {XythumToken} from "../../src/core/XythumToken.sol";
-import {CollateralVerifier} from "../../src/zk/CollateralVerifier.sol";
-import {AaveAdapter} from "../../src/adapters/AaveAdapter.sol";
-import {CCIPSender} from "../../src/ccip/CCIPSender.sol";
-import {XythumCCIPReceiver} from "../../src/ccip/CCIPReceiver.sol";
-import {MockCCIPRouter} from "../helpers/MockCCIPRouter.sol";
-import {MockCompliance} from "../helpers/MockCompliance.sol";
-import {MockGroth16Verifier} from "../helpers/MockCollateralVerifier.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {IXythumToken} from "../../src/interfaces/IXythumToken.sol";
+import { Test } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../../src/core/CanonicalFactory.sol";
+import { XythumToken } from "../../src/core/XythumToken.sol";
+import { CollateralVerifier } from "../../src/zk/CollateralVerifier.sol";
+import { AaveAdapter } from "../../src/adapters/AaveAdapter.sol";
+import { CCIPSender } from "../../src/ccip/CCIPSender.sol";
+import { XythumCCIPReceiver } from "../../src/ccip/CCIPReceiver.sol";
+import { MockCCIPRouter } from "../helpers/MockCCIPRouter.sol";
+import { MockCompliance } from "../helpers/MockCompliance.sol";
+import { MockGroth16Verifier } from "../helpers/MockCollateralVerifier.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { IXythumToken } from "../../src/interfaces/IXythumToken.sol";
 
 /// @title AttackScenariosTest
 /// @notice Tests every known attack vector against the Xythum protocol.
@@ -62,10 +62,7 @@ contract AttackScenariosTest is Test {
         // ── Factory ──
         compliance = new MockCompliance();
         factory = new CanonicalFactory(
-            address(attestationRegistry),
-            address(compliance),
-            makeAddr("treasury"),
-            owner
+            address(attestationRegistry), address(compliance), makeAddr("treasury"), owner
         );
 
         // ── CCIP infrastructure ──
@@ -85,12 +82,7 @@ contract AttackScenariosTest is Test {
         mockGroth16 = new MockGroth16Verifier();
         collateralVerifier = new CollateralVerifier(address(mockGroth16), owner);
 
-        adapter = new AaveAdapter(
-            address(collateralVerifier),
-            address(factory),
-            1 hours,
-            owner
-        );
+        adapter = new AaveAdapter(address(collateralVerifier), address(factory), 1 hours, owner);
 
         // ── Receipt token for adapter ──
         compliance.setEnforceCompliance(false);
@@ -108,14 +100,16 @@ contract AttackScenariosTest is Test {
         uint256 targetChainId,
         uint256 nonce,
         uint256 numSigners
-    ) internal view returns (
-        AttestationLib.Attestation memory att,
-        bytes memory signatures,
-        uint256 bitmap
-    ) {
+    )
+        internal
+        view
+        returns (AttestationLib.Attestation memory att, bytes memory signatures, uint256 bitmap)
+    {
         att = helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
         uint256[] memory signerIndices = new uint256[](numSigners);
-        for (uint256 i = 0; i < numSigners; i++) signerIndices[i] = i;
+        for (uint256 i = 0; i < numSigners; i++) {
+            signerIndices[i] = i;
+        }
         bytes32 domainSep = attestationRegistry.DOMAIN_SEPARATOR();
         (signatures, bitmap) = helper.signAttestation(att, domainSep, signerIndices);
     }
@@ -126,11 +120,8 @@ contract AttackScenariosTest is Test {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(originContract, originChainId, targetChainId, nonce, THRESHOLD);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(originContract, originChainId, targetChainId, nonce, THRESHOLD);
         mirror = factory.deployMirror(att, sigs, bitmap);
     }
 
@@ -142,11 +133,8 @@ contract AttackScenariosTest is Test {
     ///         Must revert — insufficient signatures.
     function test_attack_signer_collusion_below_threshold() public {
         // Only 2 signers sign (below threshold of 3)
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xDEAD), 1, 42161, 1, 2);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xDEAD), 1, 42161, 1, 2);
 
         // Attempt to deploy mirror with insufficient signatures
         vm.expectRevert(); // InsufficientSignatures
@@ -160,11 +148,8 @@ contract AttackScenariosTest is Test {
     /// @notice Valid attestation processed successfully, then replayed.
     ///         Second attempt must revert.
     function test_attack_replay_attestation() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xAAAA), 1, 42161, 1, THRESHOLD);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xAAAA), 1, 42161, 1, THRESHOLD);
 
         // First deployment succeeds
         address mirror1 = factory.deployMirror(att, sigs, bitmap);
@@ -209,11 +194,8 @@ contract AttackScenariosTest is Test {
     ///         CREATE2 address includes the factory address as deployer.
     function test_attack_frontrun_mirror_deployment() public {
         // Build attestation
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xCCCC), 1, 42161, 1, THRESHOLD);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xCCCC), 1, 42161, 1, THRESHOLD);
 
         // Compute expected mirror address
         address predicted = factory.computeMirrorAddress(att);
@@ -340,23 +322,17 @@ contract AttackScenariosTest is Test {
 
         // Attempt to mint
         vm.prank(attacker);
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker));
         mirror.mint(attacker, 1_000_000 ether);
 
         // Attempt to burn
         vm.prank(attacker);
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker));
         mirror.burn(address(this), 1 ether);
 
         // Attempt to set authorized minter (only factory can)
         vm.prank(attacker);
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumToken.Unauthorized.selector, attacker));
         mirror.setAuthorizedMinter(attacker, true);
     }
 
@@ -366,11 +342,8 @@ contract AttackScenariosTest is Test {
 
     /// @notice CCIP message from unregistered sender/chain must be rejected.
     function test_attack_ccip_message_from_unauthorized_source() public {
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xA1A1), 1, 42161, 1, THRESHOLD);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xA1A1), 1, 42161, 1, THRESHOLD);
 
         // Unknown chain selector
         uint64 unknownChain = 99999;
@@ -432,9 +405,7 @@ contract AttackScenariosTest is Test {
 
         // Attempt to deposit again with same proofId
         vm.prank(user);
-        vm.expectRevert(
-            abi.encodeWithSelector(AaveAdapter.ProofAlreadyUsed.selector, proofId)
-        );
+        vm.expectRevert(abi.encodeWithSelector(AaveAdapter.ProofAlreadyUsed.selector, proofId));
         adapter.depositWithProof(proofId);
 
         // Attempt to resubmit same proof bytes to verifier
@@ -463,11 +434,8 @@ contract AttackScenariosTest is Test {
         factory.pause();
 
         // Attempt to deploy mirror while paused
-        (
-            AttestationLib.Attestation memory att,
-            bytes memory sigs,
-            uint256 bitmap
-        ) = _buildSignedAttestation(address(0xC3C3), 1, 42161, 1, THRESHOLD);
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(address(0xC3C3), 1, 42161, 1, THRESHOLD);
 
         vm.expectRevert(); // EnforcedPause
         factory.deployMirror(att, sigs, bitmap);
@@ -490,7 +458,9 @@ contract AttackScenariosTest is Test {
     }
 
     function _buildPublicInputs(uint256 assetId, uint256 minimumValue)
-        internal pure returns (uint256[] memory)
+        internal
+        pure
+        returns (uint256[] memory)
     {
         uint256[] memory inputs = new uint256[](4);
         inputs[0] = uint256(keccak256("attestationRoot"));

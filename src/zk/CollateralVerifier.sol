@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Ownable2Step, Ownable} from "@openzeppelin/contracts/access/Ownable2Step.sol";
-import {IZKCollateral} from "../interfaces/IZKCollateral.sol";
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import { IZKCollateral } from "../interfaces/IZKCollateral.sol";
 
 /// @title IGroth16Verifier
 /// @notice Interface for the auto-generated Groth16 verifier contract
@@ -84,10 +84,11 @@ contract CollateralVerifier is IZKCollateral, Ownable2Step {
 
     /// @inheritdoc IZKCollateral
     /// @dev Public inputs layout: [0]=attestationRoot, [1]=assetId, [2]=minimumValue, [3]=navPrice
-    function verifyCollateralProof(
-        bytes calldata proof,
-        uint256[] calldata publicInputs
-    ) external override returns (bytes32 proofId) {
+    function verifyCollateralProof(bytes calldata proof, uint256[] calldata publicInputs)
+        external
+        override
+        returns (bytes32 proofId)
+    {
         if (publicInputs.length != 4) revert InvalidProof();
 
         // Extract public inputs
@@ -124,7 +125,10 @@ contract CollateralVerifier is IZKCollateral, Ownable2Step {
 
     /// @inheritdoc IZKCollateral
     function getCollateralValue(bytes32 proofId)
-        external view override returns (uint256 minValue, address asset, uint256 timestamp)
+        external
+        view
+        override
+        returns (uint256 minValue, address asset, uint256 timestamp)
     {
         ProofRecord storage record = proofs[proofId];
         return (record.minimumValue, record.asset, record.verifiedAt);
@@ -159,16 +163,14 @@ contract CollateralVerifier is IZKCollateral, Ownable2Step {
     /// @notice Verify a Groth16 proof by decoding proof bytes and calling verifier
     /// @dev Proof format: abi.encode(uint256[2] a, uint256[2][2] b, uint256[2] c)
     ///      TODO(upgrade): Handle actual Groth16 proof format from snarkjs
-    function _verifyGroth16(
-        bytes calldata proof,
-        uint256[] calldata publicInputs
-    ) internal view returns (bool) {
+    function _verifyGroth16(bytes calldata proof, uint256[] calldata publicInputs)
+        internal
+        view
+        returns (bool)
+    {
         // Decode proof into (a, b, c) format
-        (
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c
-        ) = abi.decode(proof, (uint256[2], uint256[2][2], uint256[2]));
+        (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c) =
+            abi.decode(proof, (uint256[2], uint256[2][2], uint256[2]));
 
         // Build fixed-size public signals array
         uint256[4] memory pubSignals;

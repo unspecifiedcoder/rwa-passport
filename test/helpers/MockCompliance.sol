@@ -10,7 +10,9 @@ interface ICompliance {
     /// @param amount Transfer amount
     /// @return True if the transfer is allowed
     function isTransferCompliant(address from, address to, uint256 amount)
-        external view returns (bool);
+        external
+        view
+        returns (bool);
 }
 
 /// @title MockCompliance
@@ -35,9 +37,7 @@ contract MockCompliance is ICompliance {
     }
 
     /// @inheritdoc ICompliance
-    function isTransferCompliant(address from, address to, uint256)
-        external view returns (bool)
-    {
+    function isTransferCompliant(address from, address to, uint256) external view returns (bool) {
         if (!enforceCompliance) return true;
         // address(0) is allowed for mint/burn operations
         bool fromOk = from == address(0) || isWhitelisted[from];

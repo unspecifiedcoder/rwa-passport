@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SignerRegistry} from "../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../src/core/AttestationRegistry.sol";
-import {CanonicalFactory} from "../src/core/CanonicalFactory.sol";
-import {XythumCCIPReceiver} from "../src/ccip/CCIPReceiver.sol";
-import {MockGroth16Verifier} from "../src/mocks/MockGroth16Verifier.sol";
-import {CollateralVerifier} from "../src/zk/CollateralVerifier.sol";
-import {AaveAdapter} from "../src/adapters/AaveAdapter.sol";
+import { Script, console } from "forge-std/Script.sol";
+import { SignerRegistry } from "../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
+import { CanonicalFactory } from "../src/core/CanonicalFactory.sol";
+import { XythumCCIPReceiver } from "../src/ccip/CCIPReceiver.sol";
+import { MockGroth16Verifier } from "../src/mocks/MockGroth16Verifier.sol";
+import { CollateralVerifier } from "../src/zk/CollateralVerifier.sol";
+import { AaveAdapter } from "../src/adapters/AaveAdapter.sol";
 
 /// @title DeployTarget
 /// @notice Deploys target-chain contracts on BNB Chain Testnet
@@ -58,26 +58,23 @@ contract DeployTarget is Script {
         // 3. Deploy AttestationRegistry
         AttestationRegistry attReg = new AttestationRegistry(
             address(signerReg),
-            24 hours,   // maxStaleness
-            1 hours     // rateLimitPeriod
+            24 hours, // maxStaleness
+            1 hours // rateLimitPeriod
         );
         console.log("AttestationRegistry:", address(attReg));
 
         // 4. Deploy CanonicalFactory
         CanonicalFactory factory = new CanonicalFactory(
             address(attReg),
-            address(0),     // no compliance contract for demo
-            deployer,       // treasury
-            deployer        // owner
+            address(0), // no compliance contract for demo
+            deployer, // treasury
+            deployer // owner
         );
         console.log("CanonicalFactory:", address(factory));
 
         // 5. Deploy CCIPReceiver
-        XythumCCIPReceiver ccipReceiver = new XythumCCIPReceiver(
-            ccipRouter,
-            address(factory),
-            deployer
-        );
+        XythumCCIPReceiver ccipReceiver =
+            new XythumCCIPReceiver(ccipRouter, address(factory), deployer);
         console.log("CCIPReceiver:", address(ccipReceiver));
 
         // 6. Deploy ZK stack
@@ -97,17 +94,14 @@ contract DeployTarget is Script {
     /// @notice Deploy MockGroth16Verifier, CollateralVerifier, and AaveAdapter
     function _deployZKStack(address deployer, address factory) internal {
         MockGroth16Verifier mockVerifier = new MockGroth16Verifier();
-        CollateralVerifier collVerifier = new CollateralVerifier(
-            address(mockVerifier),
-            deployer
-        );
+        CollateralVerifier collVerifier = new CollateralVerifier(address(mockVerifier), deployer);
         console.log("MockGroth16Verifier:", address(mockVerifier));
         console.log("CollateralVerifier:", address(collVerifier));
 
         AaveAdapter aaveAdapter = new AaveAdapter(
             address(collVerifier),
             factory,
-            6 hours,    // maxProofAge
+            6 hours, // maxProofAge
             deployer
         );
         console.log("AaveAdapter:", address(aaveAdapter));

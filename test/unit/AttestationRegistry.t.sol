@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {Test, console2} from "forge-std/Test.sol";
-import {SignerRegistry} from "../../src/core/SignerRegistry.sol";
-import {AttestationRegistry} from "../../src/core/AttestationRegistry.sol";
-import {AttestationLib} from "../../src/libraries/AttestationLib.sol";
-import {IAttestationVerifier} from "../../src/interfaces/IAttestationVerifier.sol";
-import {AttestationHelper} from "../helpers/AttestationHelper.sol";
-import {TestConstants} from "../helpers/TestConstants.sol";
+import { Test, console2 } from "forge-std/Test.sol";
+import { SignerRegistry } from "../../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../../src/core/AttestationRegistry.sol";
+import { AttestationLib } from "../../src/libraries/AttestationLib.sol";
+import { IAttestationVerifier } from "../../src/interfaces/IAttestationVerifier.sol";
+import { AttestationHelper } from "../helpers/AttestationHelper.sol";
+import { TestConstants } from "../helpers/TestConstants.sol";
 
 /// @title AttestationRegistryTest
 /// @notice Unit tests for the AttestationRegistry contract
@@ -40,25 +40,25 @@ contract AttestationRegistryTest is Test {
         }
 
         // Deploy attestation registry
-        attestationRegistry = new AttestationRegistry(
-            address(signerRegistry),
-            MAX_STALENESS,
-            RATE_LIMIT
-        );
+        attestationRegistry =
+            new AttestationRegistry(address(signerRegistry), MAX_STALENESS, RATE_LIMIT);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────
 
     function _buildDefaultAttestation(uint256 nonce)
-        internal view returns (AttestationLib.Attestation memory)
+        internal
+        view
+        returns (AttestationLib.Attestation memory)
     {
         return helper.buildAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, nonce);
     }
 
-    function _signWithSigners(
-        AttestationLib.Attestation memory att,
-        uint256[] memory indices
-    ) internal view returns (bytes memory signatures, uint256 bitmap) {
+    function _signWithSigners(AttestationLib.Attestation memory att, uint256[] memory indices)
+        internal
+        view
+        returns (bytes memory signatures, uint256 bitmap)
+    {
         return helper.signAttestation(att, attestationRegistry.DOMAIN_SEPARATOR(), indices);
     }
 
@@ -165,9 +165,7 @@ contract AttestationRegistryTest is Test {
         bytes32 _pairKey = AttestationLib.pairKey(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN);
         vm.expectRevert(
             abi.encodeWithSelector(
-                AttestationRegistry.RateLimited.selector,
-                _pairKey,
-                block.timestamp + RATE_LIMIT
+                AttestationRegistry.RateLimited.selector, _pairKey, block.timestamp + RATE_LIMIT
             )
         );
         attestationRegistry.verifyAttestation(att2, sigs2, bitmap2);
@@ -201,9 +199,7 @@ contract AttestationRegistryTest is Test {
 
         bytes32 attId = AttestationLib.attestationId(att);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AttestationRegistry.AttestationAlreadyExists.selector, attId
-            )
+            abi.encodeWithSelector(AttestationRegistry.AttestationAlreadyExists.selector, attId)
         );
         attestationRegistry.verifyAttestation(att, sigs, bitmap);
     }
@@ -246,9 +242,7 @@ contract AttestationRegistryTest is Test {
     function test_getAttestation_not_found_reverts() public {
         bytes32 fakeId = keccak256("nonexistent");
         vm.expectRevert(
-            abi.encodeWithSelector(
-                AttestationRegistry.AttestationNotFound.selector, fakeId
-            )
+            abi.encodeWithSelector(AttestationRegistry.AttestationNotFound.selector, fakeId)
         );
         attestationRegistry.getAttestation(fakeId);
     }
@@ -319,11 +313,7 @@ contract AttestationRegistryTest is Test {
 
         vm.expectEmit(true, true, false, true);
         emit IAttestationVerifier.AttestationVerified(
-            expectedId,
-            ORIGIN_CONTRACT,
-            ORIGIN_CHAIN,
-            TARGET_CHAIN,
-            att.timestamp
+            expectedId, ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, att.timestamp
         );
 
         attestationRegistry.verifyAttestation(att, sigs, bitmap);
@@ -333,9 +323,8 @@ contract AttestationRegistryTest is Test {
 
     function test_submitAttestation_succeeds() public {
         // Build attestation with targetChainId = block.chainid
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid, 1
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid, 1);
         (bytes memory sigs, uint256 bitmap) = _signWithSigners(att, _thresholdIndices());
 
         bytes32 attId = attestationRegistry.submitAttestation(att, sigs, bitmap);
@@ -350,9 +339,8 @@ contract AttestationRegistryTest is Test {
 
     function test_submitAttestation_wrong_chain_reverts() public {
         // Build attestation with wrong targetChainId
-        AttestationLib.Attestation memory att = helper.buildAttestation(
-            ORIGIN_CONTRACT, ORIGIN_CHAIN, 999, 1
-        );
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, 999, 1);
         (bytes memory sigs, uint256 bitmap) = _signWithSigners(att, _thresholdIndices());
 
         vm.expectRevert(
@@ -365,9 +353,8 @@ contract AttestationRegistryTest is Test {
 
     function test_submitAttestation_same_verification_as_verifyAttestation() public {
         // Build two identical attestations targeting this chain
-        AttestationLib.Attestation memory att1 = helper.buildAttestation(
-            ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid, 1
-        );
+        AttestationLib.Attestation memory att1 =
+            helper.buildAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, block.chainid, 1);
         (bytes memory sigs1, uint256 bitmap1) = _signWithSigners(att1, _thresholdIndices());
 
         // Pre-compute the expected attestation ID (both paths should produce the same one)

@@ -40,13 +40,15 @@ library HookMiner {
     }
 
     /// @notice Compute a CREATE2 address
-    function _computeCreate2(
-        address deployer,
-        bytes32 salt,
-        bytes32 initCodeHash
-    ) internal pure returns (address) {
-        return address(uint160(uint256(keccak256(abi.encodePacked(
-            bytes1(0xff), deployer, salt, initCodeHash
-        )))));
+    function _computeCreate2(address deployer, bytes32 salt, bytes32 initCodeHash)
+        internal
+        pure
+        returns (address)
+    {
+        return address(
+            uint160(
+                uint256(keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, initCodeHash)))
+            )
+        );
     }
 }

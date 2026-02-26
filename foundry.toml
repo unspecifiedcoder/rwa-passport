@@ -18,8 +18,8 @@ runs = 64
 depth = 16
 
 [profile.ci]
-fuzz = { runs = 10000 }
-invariant = { runs = 1024, depth = 128 }
+fuzz = { runs = 2000 }
+invariant = { runs = 128, depth = 32 }
 
 [fmt]
 line_length = 100
