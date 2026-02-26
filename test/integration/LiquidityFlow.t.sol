@@ -111,8 +111,9 @@ contract LiquidityFlowTest is Test, Deployers {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        AttestationLib.Attestation memory att =
-            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
+        AttestationLib.Attestation memory att = helper.buildAttestation(
+            originContract, originChainId, targetChainId, nonce
+        );
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
         for (uint256 i = 0; i < THRESHOLD; i++) {
             signerIndices[i] = i;
@@ -168,10 +169,7 @@ contract LiquidityFlowTest is Test, Deployers {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
-                tickLower: -200,
-                tickUpper: 200,
-                liquidityDelta: 100e18,
-                salt: bytes32(0)
+                tickLower: -200, tickUpper: 200, liquidityDelta: 100e18, salt: bytes32(0)
             }),
             ZERO_BYTES
         );
@@ -244,10 +242,7 @@ contract LiquidityFlowTest is Test, Deployers {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
-                tickLower: -200,
-                tickUpper: 200,
-                liquidityDelta: 100e18,
-                salt: bytes32(0)
+                tickLower: -200, tickUpper: 200, liquidityDelta: 100e18, salt: bytes32(0)
             }),
             ZERO_BYTES
         );

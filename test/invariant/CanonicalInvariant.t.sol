@@ -129,10 +129,9 @@ contract CanonicalInvariantTest is Test {
             (
                 address originContract,
                 uint256 originChainId,
-                uint256 targetChainId,
-                , // attestationId
+                uint256 targetChainId,, // attestationId
                 , // deployedAt
-                    // active
+                // active
             ) = factory.mirrorInfoMap(mirror);
 
             // Rebuild a minimal attestation for computeMirrorAddress

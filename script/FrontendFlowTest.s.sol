@@ -243,7 +243,7 @@ contract TestBnbCorrectFlows is TestBase {
             lockedAmount: 1_000_000 ether,
             timestamp: block.timestamp, // doesn't affect address
             nonce: 1 // doesn't affect address
-         });
+        });
 
         address computed = factory.computeMirrorAddress(att);
         if (computed == BNB_MIRROR) {
@@ -410,7 +410,7 @@ contract TestBnbBadFlows is TestBase {
             lockedAmount: 1_000_000 ether,
             timestamp: block.timestamp,
             nonce: 1 // Already used!
-         });
+        });
 
         (bytes memory sigs, uint256 bitmap) = _sign3of5(att, BNB_ATT_REG);
 

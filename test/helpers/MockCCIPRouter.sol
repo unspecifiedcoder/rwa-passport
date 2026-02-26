@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import { IRouterClient } from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
-import { IAny2EVMMessageReceiver } from
-    "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IAny2EVMMessageReceiver.sol";
+import {
+    IRouterClient
+} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
+import {
+    IAny2EVMMessageReceiver
+} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IAny2EVMMessageReceiver.sol";
 import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 
 /// @title MockCCIPRouter
@@ -49,12 +52,7 @@ contract MockCCIPRouter is IRouterClient {
     }
 
     /// @inheritdoc IRouterClient
-    function getFee(uint64, Client.EVM2AnyMessage memory)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getFee(uint64, Client.EVM2AnyMessage memory) external view override returns (uint256) {
         return fixedFee;
     }
 

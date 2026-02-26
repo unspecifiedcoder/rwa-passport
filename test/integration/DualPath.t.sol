@@ -57,8 +57,9 @@ contract DualPathTest is Test {
         compliance = new MockCompliance();
 
         // 6. Deploy factory
-        factory =
-            new CanonicalFactory(address(attestationRegistry), address(compliance), treasury, owner);
+        factory = new CanonicalFactory(
+            address(attestationRegistry), address(compliance), treasury, owner
+        );
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────

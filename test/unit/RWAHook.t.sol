@@ -156,10 +156,7 @@ contract RWAHookTest is Test, Deployers {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
-                tickLower: -120,
-                tickUpper: 120,
-                liquidityDelta: 1e18,
-                salt: bytes32(0)
+                tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(0)
             }),
             ZERO_BYTES
         );
@@ -173,8 +170,9 @@ contract RWAHookTest is Test, Deployers {
         uint256 targetChainId,
         uint256 nonce
     ) internal returns (address mirror) {
-        AttestationLib.Attestation memory att =
-            helper.buildAttestation(originContract, originChainId, targetChainId, nonce);
+        AttestationLib.Attestation memory att = helper.buildAttestation(
+            originContract, originChainId, targetChainId, nonce
+        );
         uint256[] memory signerIndices = new uint256[](THRESHOLD);
         for (uint256 i = 0; i < THRESHOLD; i++) {
             signerIndices[i] = i;
@@ -243,9 +241,7 @@ contract RWAHookTest is Test, Deployers {
         swapRouter.swap(
             poolKey,
             IPoolManager.SwapParams({
-                zeroForOne: true,
-                amountSpecified: -10,
-                sqrtPriceLimitX96: MIN_PRICE_LIMIT
+                zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
@@ -276,9 +272,7 @@ contract RWAHookTest is Test, Deployers {
         swapRouter.swap(
             poolKey,
             IPoolManager.SwapParams({
-                zeroForOne: true,
-                amountSpecified: -10,
-                sqrtPriceLimitX96: MIN_PRICE_LIMIT
+                zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
@@ -348,10 +342,7 @@ contract RWAHookTest is Test, Deployers {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
-                tickLower: -120,
-                tickUpper: 120,
-                liquidityDelta: 1e18,
-                salt: bytes32(uint256(1))
+                tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(uint256(1))
             }),
             ZERO_BYTES
         );
@@ -379,10 +370,7 @@ contract RWAHookTest is Test, Deployers {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
-                tickLower: -120,
-                tickUpper: 120,
-                liquidityDelta: 1e18,
-                salt: bytes32(0)
+                tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(0)
             }),
             ZERO_BYTES
         );
@@ -433,9 +421,7 @@ contract RWAHookTest is Test, Deployers {
         swapRouter.swap(
             poolKey,
             IPoolManager.SwapParams({
-                zeroForOne: true,
-                amountSpecified: -10,
-                sqrtPriceLimitX96: MIN_PRICE_LIMIT
+                zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             abi.encode(nonCompliant)
@@ -456,9 +442,7 @@ contract RWAHookTest is Test, Deployers {
         swapRouter.swap(
             poolKey,
             IPoolManager.SwapParams({
-                zeroForOne: true,
-                amountSpecified: -10,
-                sqrtPriceLimitX96: MIN_PRICE_LIMIT
+                zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             ZERO_BYTES
@@ -479,9 +463,7 @@ contract RWAHookTest is Test, Deployers {
         swapRouter.swap(
             poolKey,
             IPoolManager.SwapParams({
-                zeroForOne: true,
-                amountSpecified: -10,
-                sqrtPriceLimitX96: MIN_PRICE_LIMIT
+                zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
             abi.encode(compliantUser)
@@ -503,10 +485,7 @@ contract RWAHookTest is Test, Deployers {
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
-                tickLower: -120,
-                tickUpper: 120,
-                liquidityDelta: 1e18,
-                salt: bytes32(uint256(99))
+                tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(uint256(99))
             }),
             abi.encode(nonCompliantLP)
         );

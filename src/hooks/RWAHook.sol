@@ -10,7 +10,8 @@ import { PoolId, PoolIdLibrary } from "@uniswap/v4-core/src/types/PoolId.sol";
 import { Currency } from "@uniswap/v4-core/src/types/Currency.sol";
 import { BalanceDelta } from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 import {
-    BeforeSwapDelta, BeforeSwapDeltaLibrary
+    BeforeSwapDelta,
+    BeforeSwapDeltaLibrary
 } from "@uniswap/v4-core/src/types/BeforeSwapDelta.sol";
 import { ICanonicalFactory } from "../interfaces/ICanonicalFactory.sol";
 import { IXythumToken } from "../interfaces/IXythumToken.sol";

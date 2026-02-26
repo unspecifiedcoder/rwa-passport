@@ -57,7 +57,7 @@ contract DirectDeploy is Script {
             lockedAmount: 1_000_000 ether,
             timestamp: block.timestamp,
             nonce: 3 // nonce 3 to avoid collision
-         });
+        });
 
         console.log("Attestation timestamp:", att.timestamp);
 
