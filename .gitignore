@@ -7,9 +7,13 @@ broadcast/
 .env
 .env.local
 
-# Dependencies
-lib/
+# Dependencies (top-level only — don't ignore frontend/src/lib/)
+/lib/
 node_modules/
+
+# Root package files (not needed — frontend has its own)
+/package.json
+/package-lock.json
 
 # Frontend
 frontend/node_modules/

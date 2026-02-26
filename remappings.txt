@@ -1,5 +1,5 @@
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
-@chainlink/contracts-ccip/=lib/ccip/contracts/
+@chainlink/contracts-ccip/=vendor/chainlink-ccip/
 @uniswap/v4-core/=lib/v4-core/
 solmate/=lib/v4-core/lib/solmate/
 forge-std/=lib/forge-std/src/
