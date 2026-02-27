@@ -1,83 +1,169 @@
 "use client";
 
-import { useReadContract } from "wagmi";
+import { useReadContract, useReadContracts } from "wagmi";
 import { bscTestnet, avalancheFuji } from "wagmi/chains";
 import { MirrorTable, type MirrorEntry } from "@/components/MirrorTable";
 import { XYTHUM_TOKEN_ABI, CANONICAL_FACTORY_ABI, CONTRACTS } from "@/lib/contracts";
-import { getChainName } from "@/lib/chains";
+import { getChainName, monadTestnet } from "@/lib/chains";
+import { useState, useMemo } from "react";
+
+const ACTIVE_CHAINS = [
+  { chain: avalancheFuji, key: "avalancheFuji" },
+  { chain: bscTestnet, key: "bscTestnet" },
+  { chain: monadTestnet, key: "monadTestnet" },
+] as const;
+
+const POLL_INTERVAL = 15_000; // 15s auto-refresh
 
 export default function MirrorsPage() {
-  // ── Known mirror on BNB Testnet ──
-  const bnbMirrorAddr = CONTRACTS.bscTestnet.mirrorToken as `0x${string}`;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const { data: bnbIsCanonical } = useReadContract({
+  // ── Fetch all mirror addresses from both factories ──
+  const {
+    data: fujiMirrors,
+    refetch: refetchFuji,
+    isLoading: fujiLoading,
+  } = useReadContract({
+    address: CONTRACTS.avalancheFuji.canonicalFactory,
+    abi: CANONICAL_FACTORY_ABI,
+    functionName: "getAllMirrors",
+    chainId: avalancheFuji.id,
+    query: { refetchInterval: POLL_INTERVAL },
+  });
+
+  const {
+    data: bnbMirrors,
+    refetch: refetchBnb,
+    isLoading: bnbLoading,
+  } = useReadContract({
     address: CONTRACTS.bscTestnet.canonicalFactory,
     abi: CANONICAL_FACTORY_ABI,
-    functionName: "isCanonical",
-    args: [bnbMirrorAddr],
+    functionName: "getAllMirrors",
     chainId: bscTestnet.id,
+    query: { refetchInterval: POLL_INTERVAL },
   });
 
-  const { data: bnbName } = useReadContract({
-    address: bnbMirrorAddr,
-    abi: XYTHUM_TOKEN_ABI,
-    functionName: "name",
-    chainId: bscTestnet.id,
+  const {
+    data: monadMirrors,
+    refetch: refetchMonad,
+    isLoading: monadLoading,
+  } = useReadContract({
+    address: CONTRACTS.monadTestnet.canonicalFactory,
+    abi: CANONICAL_FACTORY_ABI,
+    functionName: "getAllMirrors",
+    chainId: monadTestnet.id,
+    query: { refetchInterval: POLL_INTERVAL },
   });
 
-  const { data: bnbSymbol } = useReadContract({
-    address: bnbMirrorAddr,
-    abi: XYTHUM_TOKEN_ABI,
-    functionName: "symbol",
-    chainId: bscTestnet.id,
+  // ── Build multicall contracts for metadata reads ──
+  const metadataCalls = useMemo(() => {
+    const calls: {
+      address: `0x${string}`;
+      abi: typeof XYTHUM_TOKEN_ABI;
+      functionName: "symbol" | "name" | "originContract" | "originChainId";
+      chainId: number;
+    }[] = [];
+
+    const addCalls = (addresses: readonly `0x${string}`[] | undefined, chainId: number) => {
+      if (!addresses) return;
+      for (const addr of addresses) {
+        calls.push({ address: addr, abi: XYTHUM_TOKEN_ABI, functionName: "symbol", chainId });
+        calls.push({ address: addr, abi: XYTHUM_TOKEN_ABI, functionName: "name", chainId });
+        calls.push({ address: addr, abi: XYTHUM_TOKEN_ABI, functionName: "originContract", chainId });
+        calls.push({ address: addr, abi: XYTHUM_TOKEN_ABI, functionName: "originChainId", chainId });
+      }
+    };
+
+    addCalls(fujiMirrors as readonly `0x${string}`[] | undefined, avalancheFuji.id);
+    addCalls(bnbMirrors as readonly `0x${string}`[] | undefined, bscTestnet.id);
+    addCalls(monadMirrors as readonly `0x${string}`[] | undefined, monadTestnet.id);
+
+    return calls;
+  }, [fujiMirrors, bnbMirrors, monadMirrors]);
+
+  const { data: metadataResults, refetch: refetchMetadata } = useReadContracts({
+    contracts: metadataCalls,
+    query: {
+      enabled: metadataCalls.length > 0,
+      refetchInterval: POLL_INTERVAL,
+    },
   });
 
-  const { data: bnbOriginContract } = useReadContract({
-    address: bnbMirrorAddr,
-    abi: XYTHUM_TOKEN_ABI,
-    functionName: "originContract",
-    chainId: bscTestnet.id,
-  });
+  // ── Assemble mirror entries from results ──
+  const mirrors = useMemo(() => {
+    const entries: MirrorEntry[] = [];
+    let resultIdx = 0;
 
-  const { data: bnbOriginChainId } = useReadContract({
-    address: bnbMirrorAddr,
-    abi: XYTHUM_TOKEN_ABI,
-    functionName: "originChainId",
-    chainId: bscTestnet.id,
-  });
+    const processMirrors = (
+      addresses: readonly `0x${string}`[] | undefined,
+      targetChainId: number,
+    ) => {
+      if (!addresses || !metadataResults) return;
+      for (const addr of addresses) {
+        const symbol = metadataResults[resultIdx]?.result as string | undefined;
+        const name = metadataResults[resultIdx + 1]?.result as string | undefined;
+        const originContract = metadataResults[resultIdx + 2]?.result as string | undefined;
+        const originChainId = metadataResults[resultIdx + 3]?.result as bigint | undefined;
+        resultIdx += 4;
 
-  // Build mirror entries
-  const mirrors: MirrorEntry[] = [];
+        if (symbol) {
+          entries.push({
+            address: addr,
+            symbol,
+            targetChainId,
+            originChainId: originChainId ? Number(originChainId) : 0,
+            originContract: originContract || "0x",
+            status: "active",
+          });
+        }
+      }
+    };
 
-  if (bnbIsCanonical && bnbSymbol) {
-    mirrors.push({
-      address: bnbMirrorAddr,
-      symbol: bnbSymbol,
-      targetChainId: bscTestnet.id,
-      originChainId: bnbOriginChainId ? Number(bnbOriginChainId) : avalancheFuji.id,
-      originContract: bnbOriginContract || CONTRACTS.avalancheFuji.mockRwa || "0x",
-      status: "active",
-    });
-  }
+    processMirrors(fujiMirrors as readonly `0x${string}`[] | undefined, avalancheFuji.id);
+    processMirrors(bnbMirrors as readonly `0x${string}`[] | undefined, bscTestnet.id);
+    processMirrors(monadMirrors as readonly `0x${string}`[] | undefined, monadTestnet.id);
 
-  // TODO: In a production version, we'd scan MirrorDeployed events from both factories
-  // to dynamically discover all mirrors. For the testnet demo, we enumerate known mirrors.
+    return entries;
+  }, [fujiMirrors, bnbMirrors, monadMirrors, metadataResults]);
+
+  // ── Manual refresh ──
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([refetchFuji(), refetchBnb(), refetchMonad(), refetchMetadata()]);
+    setIsRefreshing(false);
+  };
+
+  const isLoading = fujiLoading || bnbLoading || monadLoading;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold mb-2">Mirror Explorer</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold mb-2">Mirror Explorer</h1>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="text-sm px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-colors disabled:opacity-50"
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
         <p className="text-gray-400 text-sm">
           Browse all canonical Xythum mirror tokens deployed across chains.
         </p>
-        {mirrors.length > 0 && (
+        {isLoading && (
+          <p className="text-xs text-yellow-400 mt-1">
+            Loading mirrors from on-chain factories...
+          </p>
+        )}
+        {!isLoading && mirrors.length > 0 && (
           <p className="text-xs text-green-400 mt-1">
             {mirrors.length} canonical mirror{mirrors.length > 1 ? "s" : ""} found on-chain
           </p>
         )}
         <p className="text-xs text-gray-500 mt-1">
-          New mirrors deployed via the Attest page will appear here after CCIP delivery (~20-35 min).
-          Refresh the page to check for newly deployed mirrors.
+          Auto-refreshes every 15 seconds. New mirrors deployed via the Attest page will appear here
+          after deployment confirms on-chain.
         </p>
       </div>
 
@@ -85,7 +171,7 @@ export default function MirrorsPage() {
 
       {/* Mirror details */}
       {mirrors.map((m) => (
-        <div key={m.address} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <div key={`${m.targetChainId}-${m.address}`} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <h3 className="text-sm font-medium text-gray-400 mb-3">
             Mirror Details: {m.symbol}
           </h3>
@@ -95,10 +181,8 @@ export default function MirrorsPage() {
               <p className="font-mono text-xs text-white break-all">{m.address}</p>
             </div>
             <div>
-              <p className="text-gray-500">Name / Symbol</p>
-              <p className="text-white">
-                {m.address === bnbMirrorAddr ? bnbName : "..."} ({m.symbol})
-              </p>
+              <p className="text-gray-500">Symbol</p>
+              <p className="text-white">{m.symbol}</p>
             </div>
             <div>
               <p className="text-gray-500">Target Chain</p>

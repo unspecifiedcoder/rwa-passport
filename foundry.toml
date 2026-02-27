@@ -29,6 +29,7 @@ bracket_spacing = true
 [rpc_endpoints]
 fuji = "${RPC_AVALANCHE_FUJI}"
 bnb_testnet = "${RPC_BNB_TESTNET}"
+monad_testnet = "${RPC_MONAD_TESTNET}"
 sepolia = "${RPC_ETHEREUM_SEPOLIA}"
 
 # NOTE: Etherscan verification disabled — Snowtrace returns 504 Gateway Timeout

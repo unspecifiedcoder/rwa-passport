@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useReadContract } from "wagmi";
 import { bscTestnet, avalancheFuji } from "wagmi/chains";
 import { CANONICAL_FACTORY_ABI, XYTHUM_TOKEN_ABI, CONTRACTS } from "@/lib/contracts";
-import { getChainName } from "@/lib/chains";
+import { getChainName, monadTestnet } from "@/lib/chains";
 
 const VERIFY_CHAINS = [
   { chain: bscTestnet, factory: CONTRACTS.bscTestnet.canonicalFactory },
   { chain: avalancheFuji, factory: CONTRACTS.avalancheFuji.canonicalFactory },
+  { chain: monadTestnet, factory: CONTRACTS.monadTestnet.canonicalFactory },
 ];
 
 export function CanonicalVerifier() {

@@ -19,13 +19,26 @@ import {
 } from "@/lib/contracts";
 import { MOCK_RWA_BYTECODE, MOCK_RWA_ABI } from "@/lib/mockrwa-bytecode";
 import { signAttestation, type Attestation } from "@/lib/signing";
-import { getChainName } from "@/lib/chains";
+import { getChainName, monadTestnet } from "@/lib/chains";
 
-// Direction configs
-const DIRECTIONS = [
+// Direction configs — ccipSelector/ccipSender are optional (Monad has no CCIP)
+interface Direction {
+  id: string;
+  label: string;
+  sourceChain: { id: number; name: string };
+  targetChain: { id: number; name: string };
+  ccipSelector?: string;
+  ccipSender?: string;
+  targetFactory: string;
+  targetAttReg: string;
+  defaultRwa: string;
+  hasCcip: boolean;
+}
+
+const DIRECTIONS: Direction[] = [
   {
     id: "fuji-to-bnb",
-    label: "Avalanche Fuji -> BNB Testnet",
+    label: "Fuji -> BNB",
     sourceChain: avalancheFuji,
     targetChain: bscTestnet,
     ccipSelector: CCIP_CHAIN_SELECTORS.bscTestnet,
@@ -33,10 +46,11 @@ const DIRECTIONS = [
     targetFactory: CONTRACTS.bscTestnet.canonicalFactory,
     targetAttReg: CONTRACTS.bscTestnet.attestationRegistry,
     defaultRwa: CONTRACTS.avalancheFuji.mockRwa!,
+    hasCcip: true,
   },
   {
     id: "bnb-to-fuji",
-    label: "BNB Testnet -> Avalanche Fuji",
+    label: "BNB -> Fuji",
     sourceChain: bscTestnet,
     targetChain: avalancheFuji,
     ccipSelector: CCIP_CHAIN_SELECTORS.avalancheFuji,
@@ -44,8 +58,49 @@ const DIRECTIONS = [
     targetFactory: CONTRACTS.avalancheFuji.canonicalFactory,
     targetAttReg: CONTRACTS.avalancheFuji.attestationRegistry,
     defaultRwa: CONTRACTS.bscTestnet.mockRwa!,
+    hasCcip: true,
   },
-] as const;
+  {
+    id: "fuji-to-monad",
+    label: "Fuji -> Monad",
+    sourceChain: avalancheFuji,
+    targetChain: monadTestnet,
+    targetFactory: CONTRACTS.monadTestnet.canonicalFactory,
+    targetAttReg: CONTRACTS.monadTestnet.attestationRegistry,
+    defaultRwa: CONTRACTS.avalancheFuji.mockRwa!,
+    hasCcip: false,
+  },
+  {
+    id: "bnb-to-monad",
+    label: "BNB -> Monad",
+    sourceChain: bscTestnet,
+    targetChain: monadTestnet,
+    targetFactory: CONTRACTS.monadTestnet.canonicalFactory,
+    targetAttReg: CONTRACTS.monadTestnet.attestationRegistry,
+    defaultRwa: CONTRACTS.bscTestnet.mockRwa!,
+    hasCcip: false,
+  },
+  {
+    id: "monad-to-fuji",
+    label: "Monad -> Fuji",
+    sourceChain: monadTestnet,
+    targetChain: avalancheFuji,
+    targetFactory: CONTRACTS.avalancheFuji.canonicalFactory,
+    targetAttReg: CONTRACTS.avalancheFuji.attestationRegistry,
+    defaultRwa: CONTRACTS.monadTestnet.mockRwa!,
+    hasCcip: false,
+  },
+  {
+    id: "monad-to-bnb",
+    label: "Monad -> BNB",
+    sourceChain: monadTestnet,
+    targetChain: bscTestnet,
+    targetFactory: CONTRACTS.bscTestnet.canonicalFactory,
+    targetAttReg: CONTRACTS.bscTestnet.attestationRegistry,
+    defaultRwa: CONTRACTS.monadTestnet.mockRwa!,
+    hasCcip: false,
+  },
+];
 
 type DeployMethod = "direct" | "ccip";
 
@@ -70,8 +125,15 @@ export default function AttestPage() {
   const [signerBitmap, setSignerBitmap] = useState<bigint>(BigInt(0));
   const [signedAtt, setSignedAtt] = useState<Attestation | null>(null);
 
-  // Deploy method
+  // Deploy method — default to direct for chains without CCIP
   const [deployMethod, setDeployMethod] = useState<DeployMethod>("direct");
+
+  // Force direct deploy for directions without CCIP
+  useEffect(() => {
+    if (!DIRECTIONS[dirIdx].hasCcip) {
+      setDeployMethod("direct");
+    }
+  }, [dirIdx]);
 
   // TX state
   const [ccipMsgId, setCcipMsgId] = useState<string>("");
@@ -182,7 +244,7 @@ export default function AttestPage() {
   };
 
   const handleSendCCIP = () => {
-    if (!signatures || !signedAtt || !isConnected) return;
+    if (!signatures || !signedAtt || !isConnected || !dir.hasCcip) return;
 
     if (chainId !== dir.sourceChain.id) {
       switchChain({ chainId: dir.sourceChain.id });
@@ -196,7 +258,7 @@ export default function AttestPage() {
       address: dir.ccipSender as `0x${string}`,
       abi: CCIP_SENDER_ABI,
       functionName: "sendAttestation",
-      args: [BigInt(dir.ccipSelector), signedAtt, signatures, signerBitmap],
+      args: [BigInt(dir.ccipSelector!), signedAtt, signatures, signerBitmap],
       value: parseEther(fee),
     });
   };
@@ -411,14 +473,17 @@ export default function AttestPage() {
                 Direct (Instant)
               </button>
               <button
-                onClick={() => setDeployMethod("ccip")}
+                onClick={() => dir.hasCcip && setDeployMethod("ccip")}
+                disabled={!dir.hasCcip}
                 className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   deployMethod === "ccip"
                     ? "bg-brand-600 text-white"
+                    : !dir.hasCcip
+                    ? "bg-gray-800/50 text-gray-600 cursor-not-allowed"
                     : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"
                 }`}
               >
-                CCIP (~20 min)
+                {dir.hasCcip ? "CCIP (~20 min)" : "CCIP (N/A)"}
               </button>
             </div>
           </div>

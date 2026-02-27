@@ -262,6 +262,13 @@ export const CONTRACTS: Record<
     collateralVerifier: "0x8590e66Fd2110455995E80042399e77751e01291",
     aaveAdapter: "0x6b8a2a79794251c6E9e23E36142277210EF6A717",
   },
+  // ── Monad Testnet (direct deploy only, no CCIP) ──
+  monadTestnet: {
+    signerRegistry: "0x0000000000000000000000000000000000000000",
+    attestationRegistry: "0x0000000000000000000000000000000000000000",
+    canonicalFactory: "0x0000000000000000000000000000000000000000",
+    mockRwa: "0x0000000000000000000000000000000000000000",
+  },
   // ── Sepolia chains (placeholder, not deployed yet) ──
   sepolia: {
     signerRegistry: "0x0000000000000000000000000000000000000000",
