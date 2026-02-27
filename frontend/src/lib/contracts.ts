@@ -264,10 +264,11 @@ export const CONTRACTS: Record<
   },
   // ── Monad Testnet (direct deploy only, no CCIP) ──
   monadTestnet: {
-    signerRegistry: "0x0000000000000000000000000000000000000000",
-    attestationRegistry: "0x0000000000000000000000000000000000000000",
-    canonicalFactory: "0x0000000000000000000000000000000000000000",
-    mockRwa: "0x0000000000000000000000000000000000000000",
+    signerRegistry: "0x725cCe0916d2E8682438732fD9e79803B4fAB2BD",
+    attestationRegistry: "0xe27E5e2D924F6e42ffa90C6bE817AA030dE6f48D",
+    canonicalFactory: "0x7f68d6441A48EA943BB914f71A5f07Fe20BE07aD",
+    mockRwa: "0x430172985b21458d73576435D4aD4bEeA85F376C",
+    mirrorToken: "0x4f01a5d71a6B83D0B74ff7262D6114bc6E933EE3",
   },
   // ── Sepolia chains (placeholder, not deployed yet) ──
   sepolia: {
