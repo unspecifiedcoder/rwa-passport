@@ -21,7 +21,6 @@ contract AttestationRegistry is IAttestationVerifier {
     error AttestationAlreadyExists(bytes32 attestationId);
     error AttestationNotFound(bytes32 attestationId);
     error WrongTargetChain(uint256 provided, uint256 expected);
-    error SignatureTooShort(uint256 provided, uint256 required);
 
     // ─── Immutables ──────────────────────────────────────────────────
     /// @notice The signer registry used for signature verification
@@ -187,9 +186,7 @@ contract AttestationRegistry is IAttestationVerifier {
             if (signerBitmap & (1 << i) == 0) continue;
 
             // Extract 65-byte signature (r=32, s=32, v=1)
-            if (signatures.length < sigOffset + 65) {
-                revert SignatureTooShort(signatures.length, sigOffset + 65);
-            }
+            require(signatures.length >= sigOffset + 65, "Sig too short");
             bytes memory sig = signatures[sigOffset:sigOffset + 65];
             sigOffset += 65;
 
