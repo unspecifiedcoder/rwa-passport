@@ -22,6 +22,10 @@ contract SignerRegistry is ISignerRegistry, Ownable2Step {
     /// @notice Cooldown period before a signer can actually be removed (prevents flash attacks)
     uint256 public constant REMOVAL_COOLDOWN = 7 days;
 
+    // ─── Events ──────────────────────────────────────────────────────
+    /// @notice Emitted when signer removal cooldown is initiated
+    event RemovalInitiated(address indexed signer, uint256 cooldownExpiresAt);
+
     // ─── Storage ─────────────────────────────────────────────────────
     /// @notice Whether an address is an active signer
     mapping(address => bool) public isSigner;
@@ -68,6 +72,7 @@ contract SignerRegistry is ISignerRegistry, Ownable2Step {
         // First call: initiate cooldown
         if (removalTimestamp[signer] == 0) {
             removalTimestamp[signer] = block.timestamp;
+            emit RemovalInitiated(signer, block.timestamp + REMOVAL_COOLDOWN);
             return;
         }
 
