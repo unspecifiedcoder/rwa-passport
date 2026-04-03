@@ -22,6 +22,7 @@ contract LiquidityBootstrap is Ownable2Step {
     // ─── Custom Errors ───────────────────────────────────────────────
     error NotCanonical(address mirror);
     error PoolAlreadyExists(address mirror);
+    error ZeroAddress();
 
     // ─── Events ──────────────────────────────────────────────────────
     event PoolCreated(address indexed mirror, PoolId poolId, address quoteAsset);
@@ -63,6 +64,7 @@ contract LiquidityBootstrap is Ownable2Step {
         poolManager = IPoolManager(_poolManager);
         factory = ICanonicalFactory(_factory);
         hook = _hook;
+        if (_quoteAsset == address(0)) revert ZeroAddress();
         quoteAsset = _quoteAsset;
     }
 
