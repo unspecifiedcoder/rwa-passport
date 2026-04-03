@@ -27,14 +27,21 @@ contract XythumCCIPReceiver is ChainlinkCCIPReceiver, Ownable2Step {
 
     // ─── Events ──────────────────────────────────────────────────────
     /// @notice Emitted when a CCIP message is received and processed
+    /// @param messageId The CCIP message identifier
+    /// @param sourceChainSelector The source chain CCIP selector
+    /// @param messageType Type of message (1=deploy, 2=update)
     event AttestationReceived(
         bytes32 indexed messageId, uint64 indexed sourceChainSelector, uint8 messageType
     );
 
     /// @notice Emitted when a mirror is successfully deployed via CCIP
+    /// @param messageId The CCIP message that triggered deployment
+    /// @param mirror The deployed mirror token address
     event MirrorDeployedViaCCIP(bytes32 indexed messageId, address indexed mirror);
 
-    /// @notice Emitted when a deployment fails (logged, not reverted)
+    /// @notice Emitted when a deployment fails (logged, not reverted to avoid CCIP retry)
+    /// @param messageId The CCIP message that failed
+    /// @param reason The encoded revert reason
     event DeploymentFailed(bytes32 indexed messageId, bytes reason);
 
     // ─── Immutables ──────────────────────────────────────────────────

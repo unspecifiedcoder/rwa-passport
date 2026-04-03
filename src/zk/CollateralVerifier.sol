@@ -37,6 +37,7 @@ contract CollateralVerifier is IZKCollateral, Ownable2Step {
     error ProofExpired(bytes32 proofId);
     error UnknownAsset(uint256 assetId);
     error ProofNotActive(bytes32 proofId);
+    error ProofNotFound(bytes32 proofId);
 
     // ─── Events ──────────────────────────────────────────────────────
     event AssetRegistered(address indexed asset, uint256 indexed assetId);
@@ -131,6 +132,7 @@ contract CollateralVerifier is IZKCollateral, Ownable2Step {
         returns (uint256 minValue, address asset, uint256 timestamp)
     {
         ProofRecord storage record = proofs[proofId];
+        if (record.asset == address(0)) revert ProofNotFound(proofId);
         return (record.minimumValue, record.asset, record.verifiedAt);
     }
 
