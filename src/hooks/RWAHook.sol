@@ -41,7 +41,7 @@ contract RWAHook is IHooks {
     // ─── Events ──────────────────────────────────────────────────────
     event PoolConfigured(PoolId indexed poolId, address xythumToken);
     event NAVUpdated(PoolId indexed poolId, uint256 timestamp);
-    event PoolPauseChanged(PoolId indexed poolId, bool active);
+    event PoolPauseChanged(PoolId indexed poolId, bool indexed active);
 
     // ─── Structs ─────────────────────────────────────────────────────
     /// @notice Per-pool configuration
