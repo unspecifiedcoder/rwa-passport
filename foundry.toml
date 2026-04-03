@@ -32,9 +32,8 @@ bnb_testnet = "${RPC_BNB_TESTNET}"
 monad_testnet = "${RPC_MONAD_TESTNET}"
 sepolia = "${RPC_ETHEREUM_SEPOLIA}"
 
-# NOTE: Etherscan verification disabled — Snowtrace returns 504 Gateway Timeout
-# which blocks forge script --broadcast from completing. Re-enable once Snowtrace is stable.
-# [etherscan]
-# fuji = { key = "${SNOWTRACE_API_KEY}", url = "https://api-testnet.snowtrace.io/api" }
-# bnb_testnet = { key = "${BSCSCAN_API_KEY}", url = "https://api-testnet.bscscan.com/api" }
-# sepolia = { key = "${ETHERSCAN_API_KEY}" }
+# NOTE: Snowtrace may timeout on first attempt. Use --retries 5 with forge verify-contract.
+[etherscan]
+fuji = { key = "${SNOWTRACE_API_KEY}", url = "https://api-testnet.snowtrace.io/api" }
+bnb_testnet = { key = "${BSCSCAN_API_KEY}", url = "https://api-testnet.bscscan.com/api" }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
