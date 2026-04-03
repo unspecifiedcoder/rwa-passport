@@ -23,6 +23,7 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     error DeploymentFailed();
     error WrongTargetChain(uint256 provided, uint256 expected);
     error OutOfBounds(uint256 offset, uint256 length);
+    error FeeTransferFailed();
 
     // ─── Structs ─────────────────────────────────────────────────────
     /// @notice Metadata about a deployed canonical mirror
@@ -267,7 +268,7 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
         // 6. Collect fee
         if (msg.value > 0 && treasury != address(0)) {
             (bool sent,) = treasury.call{ value: msg.value }("");
-            require(sent, "Fee transfer failed");
+            if (!sent) revert FeeTransferFailed();
         }
 
         // 7. Emit event
