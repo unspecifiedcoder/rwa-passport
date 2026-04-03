@@ -31,6 +31,7 @@ contract CCIPSender is Ownable2Step {
     error InsufficientFee(uint256 required, uint256 sent);
     error ReceiverNotSet(uint64 chainSelector);
     error RefundFailed();
+    error ZeroAddress();
 
     // ─── Events ──────────────────────────────────────────────────────
     /// @notice Emitted when an attestation is sent via CCIP
@@ -118,6 +119,7 @@ contract CCIPSender is Ownable2Step {
     /// @param chainSelector CCIP chain selector
     /// @param receiver Receiver contract address on the target chain
     function setReceiver(uint64 chainSelector, address receiver) external onlyOwner {
+        if (receiver == address(0)) revert ZeroAddress();
         allowedReceivers[chainSelector] = receiver;
     }
 
