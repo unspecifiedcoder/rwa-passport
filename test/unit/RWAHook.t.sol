@@ -80,7 +80,7 @@ contract RWAHookTest is Test, Deployers {
         );
 
         // 2. Deploy canonical mirror via factory
-        mirrorAddress = _deployCanonicalMirror(address(0xAAA), 1, 42161, 1);
+        mirrorAddress = _deployCanonicalMirror(address(0xAAA), 1, block.chainid, 1);
         mirrorToken = XythumToken(mirrorAddress);
 
         // 3. Deploy V4 PoolManager and routers

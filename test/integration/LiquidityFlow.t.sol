@@ -131,7 +131,7 @@ contract LiquidityFlowTest is Test, Deployers {
     /// @notice Full integration: deploy mirror -> bootstrap pool -> add liquidity -> swap
     function test_deploy_and_trade() public {
         // 1. Deploy canonical mirror via factory
-        address mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, 42161, 1);
+        address mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, block.chainid, 1);
         XythumToken mirror = XythumToken(mirrorAddr);
         assertTrue(factory.isCanonical(mirrorAddr), "Mirror should be canonical");
 
@@ -211,7 +211,7 @@ contract LiquidityFlowTest is Test, Deployers {
     /// @notice Deploy mirror -> pool -> trade at fresh NAV -> age NAV -> trade at stale fee -> update -> fresh again
     function test_stale_nav_increases_cost() public {
         // 1. Deploy mirror + pool
-        address mirrorAddr = _deployCanonicalMirror(address(0xBBB), 1, 42161, 2);
+        address mirrorAddr = _deployCanonicalMirror(address(0xBBB), 1, block.chainid, 2);
         XythumToken mirror = XythumToken(mirrorAddr);
 
         PoolId poolId = bootstrap.createPool(mirrorAddr);
@@ -281,7 +281,7 @@ contract LiquidityFlowTest is Test, Deployers {
 
     /// @notice Verify LiquidityBootstrap creates a pool with correct configuration
     function test_bootstrap_creates_correct_pool() public {
-        address mirrorAddr = _deployCanonicalMirror(address(0xCCC), 1, 42161, 3);
+        address mirrorAddr = _deployCanonicalMirror(address(0xCCC), 1, block.chainid, 3);
 
         // Create pool
         PoolId poolId = bootstrap.createPool(mirrorAddr);
@@ -321,7 +321,7 @@ contract LiquidityFlowTest is Test, Deployers {
 
     /// @notice LiquidityBootstrap rejects creating a pool for an already-pooled mirror
     function test_bootstrap_rejects_duplicate_pool() public {
-        address mirrorAddr = _deployCanonicalMirror(address(0xDDD), 1, 42161, 4);
+        address mirrorAddr = _deployCanonicalMirror(address(0xDDD), 1, block.chainid, 4);
         bootstrap.createPool(mirrorAddr);
 
         vm.expectRevert(

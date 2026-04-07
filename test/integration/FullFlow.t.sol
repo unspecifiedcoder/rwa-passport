@@ -128,7 +128,7 @@ contract FullFlowTest is Test {
     function test_full_lifecycle() public {
         address origin = address(sourceRWA);
         uint256 originChainId = 11155111; // ETH Sepolia
-        uint256 targetChainId = 421614; // Arb Sepolia
+        uint256 targetChainId = block.chainid;
 
         // 1. Create attestation
         // 2. Collect 3 threshold signatures
@@ -172,30 +172,31 @@ contract FullFlowTest is Test {
     // ═══════════════════════════════════════════════════════════════════
 
     /// @notice Deploy mirrors for the same origin on 3 different target chains
-    function test_multiple_targets_from_same_origin() public {
-        address origin = address(sourceRWA);
+    function test_multiple_origins_to_same_target() public {
         uint256 originChainId = 11155111;
 
-        // Target 1: Arbitrum
+        // Origin 1
+        address origin1 = address(sourceRWA);
         (AttestationLib.Attestation memory att1, bytes memory sigs1, uint256 bitmap1) =
-            _buildSignedAttestation(origin, originChainId, 421614, 1);
+            _buildSignedAttestation(origin1, originChainId, block.chainid, 1);
 
         vm.prank(user);
         ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_ARB, att1, sigs1, bitmap1);
         address mirror1 = factory.computeMirrorAddress(att1);
 
-        // Target 2: Base (need to warp past rate limit for same origin pair)
-        // Note: Different target chain = different pair key, so NO rate limit conflict
+        // Origin 2 (different origin contract, same target chain)
+        address origin2 = address(0xBEEF);
         (AttestationLib.Attestation memory att2, bytes memory sigs2, uint256 bitmap2) =
-            _buildSignedAttestation(origin, originChainId, 84532, 1);
+            _buildSignedAttestation(origin2, originChainId, block.chainid, 1);
 
         vm.prank(user);
         ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_BASE, att2, sigs2, bitmap2);
         address mirror2 = factory.computeMirrorAddress(att2);
 
-        // Target 3: Optimism
+        // Origin 3 (different origin contract)
+        address origin3 = address(0xCAFE);
         (AttestationLib.Attestation memory att3, bytes memory sigs3, uint256 bitmap3) =
-            _buildSignedAttestation(origin, originChainId, 10, 1);
+            _buildSignedAttestation(origin3, originChainId, block.chainid, 1);
 
         vm.prank(user);
         ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_OP, att3, sigs3, bitmap3);
@@ -211,10 +212,10 @@ contract FullFlowTest is Test {
         assertTrue(mirror2 != mirror3, "Mirrors 2 and 3 should differ");
         assertTrue(mirror1 != mirror3, "Mirrors 1 and 3 should differ");
 
-        // All 3 point to the same origin
-        assertEq(XythumToken(mirror1).originContract(), origin);
-        assertEq(XythumToken(mirror2).originContract(), origin);
-        assertEq(XythumToken(mirror3).originContract(), origin);
+        // Each points to its own origin
+        assertEq(XythumToken(mirror1).originContract(), origin1);
+        assertEq(XythumToken(mirror2).originContract(), origin2);
+        assertEq(XythumToken(mirror3).originContract(), origin3);
         assertEq(XythumToken(mirror1).originChainId(), originChainId);
         assertEq(XythumToken(mirror2).originChainId(), originChainId);
         assertEq(XythumToken(mirror3).originChainId(), originChainId);
