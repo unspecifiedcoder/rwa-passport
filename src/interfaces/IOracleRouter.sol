@@ -29,7 +29,7 @@ interface IOracleRouter {
     function getPrice(address asset) external view returns (PriceData memory);
 
     /// @notice Validate that oracle price matches attested NAV within threshold
-    function validateNAV(address asset, uint256 attestedNAV) external view returns (bool);
+    function validateNAV(address asset, uint256 attestedNAV) external returns (bool);
 
     /// @notice Get the TWAP for an asset over a period
     function getTWAP(address asset, uint256 period) external view returns (uint256);

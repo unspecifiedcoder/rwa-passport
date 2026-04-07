@@ -36,6 +36,8 @@ contract RWAYieldVault is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     // ─── Constants ───────────────────────────────────────────────────
     uint256 public constant BPS_DENOMINATOR = 10000;
     uint256 public constant SECONDS_PER_YEAR = 365.25 days;
+    /// @notice Dead shares offset to prevent first-depositor share manipulation
+    uint256 internal constant DEAD_SHARES = 1e6;
 
     // ─── Immutables ──────────────────────────────────────────────────
     /// @notice The underlying RWA mirror token
@@ -121,6 +123,12 @@ contract RWAYieldVault is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         if (shares == 0) revert ZeroAmount();
 
         asset.safeTransferFrom(msg.sender, address(this), assets);
+
+        // First deposit: mint dead shares to prevent share price manipulation
+        if (totalSupply() == 0) {
+            _mint(address(0xdead), DEAD_SHARES);
+        }
+
         _mint(receiver, shares);
 
         emit Deposit(msg.sender, receiver, assets, shares);
@@ -175,6 +183,10 @@ contract RWAYieldVault is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         assets = _convertToAssets(shares, totalAssets());
         if (assets == 0) revert ZeroAmount();
 
+        // Enforce same instant withdrawal limit as withdraw()
+        uint256 maxInstant = (totalAssets() * maxInstantWithdrawalBps) / BPS_DENOMINATOR;
+        if (assets > maxInstant) revert WithdrawalTooLarge(assets, maxInstant);
+
         _burn(shareOwner, shares);
         asset.safeTransfer(receiver, assets);
 
@@ -189,24 +201,29 @@ contract RWAYieldVault is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         if (!yieldSources[msg.sender]) revert NotYieldSource();
         if (yieldAmount == 0) revert ZeroAmount();
 
+        // Calculate performance fee on yield BEFORE depositing
+        uint256 perfFee;
+        if (feeRecipient != address(0) && performanceFeeBps > 0) {
+            perfFee = (yieldAmount * performanceFeeBps) / BPS_DENOMINATOR;
+        }
+
         // Transfer yield into vault
         asset.safeTransferFrom(msg.sender, address(this), yieldAmount);
 
-        // Collect performance fee on yield above high water mark
-        uint256 currentAssets = totalAssets();
-        if (currentAssets > highWaterMark && feeRecipient != address(0)) {
-            uint256 yieldAboveHWM = currentAssets - highWaterMark;
-            uint256 perfFee = (yieldAboveHWM * performanceFeeBps) / BPS_DENOMINATOR;
-
-            if (perfFee > 0) {
-                uint256 feeShares = _convertToShares(perfFee, currentAssets);
-                if (feeShares > 0) {
-                    _mint(feeRecipient, feeShares);
-                    emit PerformanceFeeCollected(perfFee, feeRecipient);
-                }
+        // Mint performance fee shares if applicable
+        if (perfFee > 0) {
+            uint256 currentAssets = totalAssets();
+            uint256 feeShares = _convertToShares(perfFee, currentAssets);
+            if (feeShares > 0) {
+                _mint(feeRecipient, feeShares);
+                emit PerformanceFeeCollected(perfFee, feeRecipient);
             }
+        }
 
-            highWaterMark = currentAssets;
+        // Update high water mark
+        uint256 newAssets = totalAssets();
+        if (newAssets > highWaterMark) {
+            highWaterMark = newAssets;
         }
 
         totalYieldHarvested += yieldAmount;

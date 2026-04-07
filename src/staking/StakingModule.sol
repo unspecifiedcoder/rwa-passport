@@ -28,6 +28,7 @@ contract StakingModule is IStakingModule, Ownable2Step, ReentrancyGuard, Pausabl
     error SlashExceedsStake(address staker, uint256 slashAmount, uint256 staked);
     error EmergencyPenaltyTooHigh();
     error OnlySlasher();
+    error InvalidDuration();
 
     // ─── Constants ───────────────────────────────────────────────────
     uint256 public constant PRECISION = 1e18;
@@ -102,10 +103,19 @@ contract StakingModule is IStakingModule, Ownable2Step, ReentrancyGuard, Pausabl
 
         StakeInfo storage info = stakes[msg.sender];
 
-        // If already staking, add to existing position
+        // If adding to existing position, recalculate effective multiplier
+        if (info.amount > 0) {
+            // Weighted average of old and new multiplier
+            uint256 totalAmount = info.amount + amount;
+            uint256 totalWeighted = info.weightedAmount + weighted;
+            multiplierBps = (totalWeighted * 10000) / totalAmount;
+            info.multiplierBps = multiplierBps;
+        } else {
+            info.multiplierBps = multiplierBps;
+        }
+
         info.amount += amount;
         info.weightedAmount += weighted;
-        info.multiplierBps = multiplierBps;
 
         // Update lock: take the later of existing lock or new lock
         uint256 newLockEnd = block.timestamp + lockDuration;
@@ -184,6 +194,7 @@ contract StakingModule is IStakingModule, Ownable2Step, ReentrancyGuard, Pausabl
     /// @param rewardAmount Total rewards to distribute over the period
     /// @param duration Duration of the reward period in seconds
     function notifyRewardAmount(uint256 rewardAmount, uint256 duration) external onlyOwner {
+        if (duration == 0) revert InvalidDuration();
         _updateReward(address(0));
 
         if (block.timestamp >= periodEnd) {

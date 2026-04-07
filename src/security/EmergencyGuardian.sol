@@ -62,8 +62,13 @@ contract EmergencyGuardian is IEmergencyGuardian {
     /// @notice Contracts that should be paused during emergency
     address[] public pausableContracts;
 
+    // ─── Constants ────────────────────────────────────────────────────
+    /// @notice Maximum emergency duration before auto-deactivation (7 days)
+    uint256 public constant MAX_EMERGENCY_DURATION = 7 days;
+
     // ─── Events ──────────────────────────────────────────────────────
     event PausableContractRegistered(address indexed contractAddr);
+    event PauseFailed(address indexed contractAddr);
     event CircuitBreakerConfigured(
         bytes32 indexed breakerId, uint256 threshold, bool isUpperBound, uint256 cooldownPeriod
     );
@@ -102,18 +107,26 @@ contract EmergencyGuardian is IEmergencyGuardian {
 
         // Attempt to pause all registered contracts
         for (uint256 i = 0; i < pausableContracts.length; i++) {
-            // Best-effort pause - don't revert if one fails
             (bool success,) =
                 pausableContracts[i].call(abi.encodeWithSignature("pause()"));
-            // Silence unused variable warning
-            success;
+            if (!success) emit PauseFailed(pausableContracts[i]);
         }
 
         emit EmergencyActivated(msg.sender, reason);
     }
 
     /// @inheritdoc IEmergencyGuardian
-    function deactivateEmergency() external onlyGovernance {
+    function deactivateEmergency() external {
+        // Governance can always deactivate
+        // Anyone can deactivate if MAX_EMERGENCY_DURATION has passed (auto-timeout)
+        if (msg.sender != governance) {
+            if (
+                !emergencyActive
+                    || block.timestamp < emergencyActivatedAt + MAX_EMERGENCY_DURATION
+            ) {
+                revert OnlyGovernance();
+            }
+        }
         if (!emergencyActive) revert EmergencyNotActive();
 
         emergencyActive = false;
@@ -123,7 +136,7 @@ contract EmergencyGuardian is IEmergencyGuardian {
         for (uint256 i = 0; i < pausableContracts.length; i++) {
             (bool success,) =
                 pausableContracts[i].call(abi.encodeWithSignature("unpause()"));
-            success;
+            if (!success) emit PauseFailed(pausableContracts[i]);
         }
 
         emit EmergencyDeactivated(msg.sender);

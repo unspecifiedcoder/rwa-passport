@@ -64,7 +64,13 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
     mapping(address => FeedConfig) public feedConfigs;
 
     /// @notice TWAP observations per asset (circular buffer)
-    mapping(address => Observation[]) public observations;
+    mapping(address => Observation[MAX_OBSERVATIONS]) public observations;
+
+    /// @notice Current write index per asset in circular buffer
+    mapping(address => uint256) public observationIndex;
+
+    /// @notice Number of valid observations per asset
+    mapping(address => uint256) public observationCount;
 
     /// @notice Maximum observations to store per asset
     uint256 public constant MAX_OBSERVATIONS = 24; // 24 hourly observations
@@ -147,7 +153,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
     }
 
     /// @inheritdoc IOracleRouter
-    function validateNAV(address asset, uint256 attestedNAV) external view returns (bool) {
+    function validateNAV(address asset, uint256 attestedNAV) external returns (bool) {
         FeedConfig storage config = feedConfigs[asset];
         if (!config.active) revert FeedNotRegistered(asset);
 
@@ -171,12 +177,14 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
             oraclePrice = uint256(answer) / (10 ** (config.decimals - 18));
         }
 
-        // Calculate deviation
+        // Calculate deviation using consistent denominator (average)
         uint256 deviation;
+        uint256 avg = (oraclePrice + attestedNAV) / 2;
+        if (avg == 0) return false;
         if (oraclePrice > attestedNAV) {
-            deviation = ((oraclePrice - attestedNAV) * BPS_DENOMINATOR) / attestedNAV;
+            deviation = ((oraclePrice - attestedNAV) * BPS_DENOMINATOR) / avg;
         } else {
-            deviation = ((attestedNAV - oraclePrice) * BPS_DENOMINATOR) / oraclePrice;
+            deviation = ((attestedNAV - oraclePrice) * BPS_DENOMINATOR) / avg;
         }
 
         bool withinThreshold = deviation <= deviationThresholdBps;
@@ -190,7 +198,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         FeedConfig storage config = feedConfigs[asset];
         if (!config.active) revert FeedNotRegistered(asset);
 
-        (, int256 answer,,, ) = IAggregatorV3(config.feed).latestRoundData();
+        (, int256 answer,,,) = IAggregatorV3(config.feed).latestRoundData();
         if (answer <= 0) return;
 
         uint256 normalizedPrice;
@@ -200,35 +208,33 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
             normalizedPrice = uint256(answer) / (10 ** (config.decimals - 18));
         }
 
-        Observation[] storage obs = observations[asset];
-        if (obs.length >= MAX_OBSERVATIONS) {
-            // Shift left (remove oldest)
-            for (uint256 i = 0; i < obs.length - 1; i++) {
-                obs[i] = obs[i + 1];
-            }
-            obs.pop();
+        uint256 idx = observationIndex[asset];
+        observations[asset][idx] = Observation({ price: normalizedPrice, timestamp: block.timestamp });
+        observationIndex[asset] = (idx + 1) % MAX_OBSERVATIONS;
+        if (observationCount[asset] < MAX_OBSERVATIONS) {
+            observationCount[asset]++;
         }
-        obs.push(Observation({ price: normalizedPrice, timestamp: block.timestamp }));
     }
 
     /// @inheritdoc IOracleRouter
     function getTWAP(address asset, uint256 period) external view returns (uint256) {
-        Observation[] storage obs = observations[asset];
-        if (obs.length == 0) revert FeedNotRegistered(asset);
+        uint256 count = observationCount[asset];
+        if (count == 0) revert FeedNotRegistered(asset);
 
         uint256 cutoff = block.timestamp - period;
         uint256 totalPrice;
-        uint256 count;
+        uint256 matched;
 
-        for (uint256 i = 0; i < obs.length; i++) {
-            if (obs[i].timestamp >= cutoff) {
-                totalPrice += obs[i].price;
-                count++;
+        for (uint256 i = 0; i < count; i++) {
+            Observation storage obs = observations[asset][i];
+            if (obs.timestamp >= cutoff) {
+                totalPrice += obs.price;
+                matched++;
             }
         }
 
-        if (count == 0) revert StalePrice(asset, period, 0);
-        return totalPrice / count;
+        if (matched == 0) revert StalePrice(asset, period, 0);
+        return totalPrice / matched;
     }
 
     // ─── Admin ───────────────────────────────────────────────────────
@@ -248,6 +254,6 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
     }
 
     function getObservationCount(address asset) external view returns (uint256) {
-        return observations[asset].length;
+        return observationCount[asset];
     }
 }

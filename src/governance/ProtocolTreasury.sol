@@ -42,8 +42,14 @@ contract ProtocolTreasury is ReentrancyGuard {
     /// @notice Spent amount per token in current epoch
     mapping(address => uint256) public epochSpent;
 
+    /// @notice Epoch number when token was last spent (for reset detection)
+    mapping(address => uint256) public epochSpentAt;
+
     /// @notice Current epoch start timestamp
     uint256 public epochStart;
+
+    /// @notice Current epoch number (incremented on reset)
+    uint256 public currentEpoch;
 
     /// @notice Epoch duration (default 30 days)
     uint256 public epochDuration;
@@ -180,7 +186,8 @@ contract ProtocolTreasury is ReentrancyGuard {
     function remainingSpendingLimit(address token) external view returns (uint256) {
         uint256 limit = epochSpendingLimit[token];
         if (limit == 0) return type(uint256).max;
-        uint256 spent = epochSpent[token];
+        // If epoch has advanced, spending resets
+        uint256 spent = epochSpentAt[token] < currentEpoch ? 0 : epochSpent[token];
         if (spent >= limit) return 0;
         return limit - spent;
     }
@@ -190,6 +197,7 @@ contract ProtocolTreasury is ReentrancyGuard {
     function _checkAndUpdateEpoch() internal {
         if (block.timestamp >= epochStart + epochDuration) {
             epochStart = block.timestamp;
+            currentEpoch++;
             emit EpochReset(epochStart);
         }
     }
@@ -198,9 +206,16 @@ contract ProtocolTreasury is ReentrancyGuard {
         uint256 limit = epochSpendingLimit[token];
         if (limit == 0) return; // No limit set
 
-        epochSpent[token] += amount;
-        if (epochSpent[token] > limit) {
-            revert SpendingLimitExceeded(token, amount, limit - (epochSpent[token] - amount));
+        // Reset spent amount if epoch has changed since last spend
+        if (epochSpentAt[token] < currentEpoch) {
+            epochSpent[token] = 0;
+            epochSpentAt[token] = currentEpoch;
         }
+
+        uint256 newSpent = epochSpent[token] + amount;
+        if (newSpent > limit) {
+            revert SpendingLimitExceeded(token, amount, limit - epochSpent[token]);
+        }
+        epochSpent[token] = newSpent;
     }
 }

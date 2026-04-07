@@ -103,7 +103,7 @@ contract OracleRouterTest is Test {
         vm.prank(owner);
         oracle.registerPriceFeed(asset, address(mockFeed));
 
-        // Oracle says $1.00, attested NAV is $1.02 (2% deviation, within 5%)
+        // Oracle says $1.00, attested NAV is $1.02 (~2% deviation, within 5%)
         bool valid = oracle.validateNAV(asset, 1.02e18);
         assertTrue(valid);
     }
@@ -112,7 +112,7 @@ contract OracleRouterTest is Test {
         vm.prank(owner);
         oracle.registerPriceFeed(asset, address(mockFeed));
 
-        // Oracle says $1.00, attested NAV is $1.10 (10% deviation, exceeds 5%)
+        // Oracle says $1.00, attested NAV is $1.10 (~10% deviation, exceeds 5%)
         bool valid = oracle.validateNAV(asset, 1.10e18);
         assertFalse(valid);
     }

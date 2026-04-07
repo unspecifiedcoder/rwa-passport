@@ -18,7 +18,8 @@ interface IRWAYieldVault {
     event DepositCapUpdated(uint256 oldCap, uint256 newCap);
 
     /// @notice Harvest yield from the underlying RWA source
-    function harvest() external returns (uint256 yieldAmount);
+    /// @param yieldAmount Amount of yield to harvest
+    function harvest(uint256 yieldAmount) external;
 
     /// @notice Get the current APY in basis points
     function currentAPY() external view returns (uint256);

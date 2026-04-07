@@ -27,7 +27,8 @@ interface IProtocolToken is IERC20 {
         address beneficiary,
         uint256 amount,
         uint256 cliffDuration,
-        uint256 vestingDuration
+        uint256 vestingDuration,
+        bool revocable
     ) external;
 
     /// @notice Release vested tokens for a beneficiary

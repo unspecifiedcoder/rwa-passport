@@ -21,6 +21,7 @@ contract FeeRouter is IFeeRouter, Ownable2Step, ReentrancyGuard {
     error ZeroAmount();
     error OnlyCollector();
     error ZeroAddress();
+    error ETHTransferFailed(address recipient);
 
     // ─── Constants ───────────────────────────────────────────────────
     uint256 public constant BPS_DENOMINATOR = 10000;
@@ -221,20 +222,20 @@ contract FeeRouter is IFeeRouter, Ownable2Step, ReentrancyGuard {
     ) internal {
         if (toTreasury > 0 && treasury != address(0)) {
             (bool s,) = treasury.call{ value: toTreasury }("");
-            s;
+            if (!s) revert ETHTransferFailed(treasury);
         }
         if (toStaking > 0 && stakingPool != address(0)) {
             (bool s,) = stakingPool.call{ value: toStaking }("");
-            s;
+            if (!s) revert ETHTransferFailed(stakingPool);
         }
         if (toInsurance > 0 && insuranceFund != address(0)) {
             (bool s,) = insuranceFund.call{ value: toInsurance }("");
-            s;
+            if (!s) revert ETHTransferFailed(insuranceFund);
         }
         // ETH burn portion goes to treasury
         if (toBurn > 0 && treasury != address(0)) {
             (bool s,) = treasury.call{ value: toBurn }("");
-            s;
+            if (!s) revert ETHTransferFailed(treasury);
         }
     }
 }
