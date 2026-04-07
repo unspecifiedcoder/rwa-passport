@@ -229,7 +229,7 @@ contract FullFlowTest is Test {
     function test_second_attestation_for_same_pair() public {
         address origin = address(sourceRWA);
         uint256 originChainId = 11155111;
-        uint256 targetChainId = 421614;
+        uint256 targetChainId = block.chainid;
 
         // First deployment succeeds
         (AttestationLib.Attestation memory att1, bytes memory sigs1, uint256 bitmap1) =
