@@ -30,8 +30,9 @@ contract CanonicalFactoryTest is Test {
 
     address public constant ORIGIN_CONTRACT = address(0xAAA);
     uint256 public constant ORIGIN_CHAIN = 1;
-    uint256 public constant TARGET_CHAIN = 42161;
-    uint256 public constant TARGET_CHAIN_2 = 10; // Optimism
+    uint256 public TARGET_CHAIN = 31337; // Foundry default chainid (must match block.chainid)
+    uint256 public TARGET_CHAIN_2 = 31337; // Same chain — tests use different origin for uniqueness
+    address public constant ORIGIN_CONTRACT_2 = address(0xBBB); // Second origin for multi-deploy tests
 
     function setUp() public {
         // Warp to avoid underflow in timestamp arithmetic
@@ -238,16 +239,16 @@ contract CanonicalFactoryTest is Test {
         assertTrue(addr1 != addr2, "Different origins must produce different addresses");
     }
 
-    function test_computeMirrorAddress_different_for_different_chains() public {
+    function test_computeMirrorAddress_different_for_different_origins() public {
         (AttestationLib.Attestation memory att1,,) =
             _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
 
         (AttestationLib.Attestation memory att2,,) =
-            _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
+            _buildSignedAttestation(ORIGIN_CONTRACT_2, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
 
         address addr1 = factory.computeMirrorAddress(att1);
         address addr2 = factory.computeMirrorAddress(att2);
-        assertTrue(addr1 != addr2, "Different target chains must produce different addresses");
+        assertTrue(addr1 != addr2, "Different origins must produce different addresses");
     }
 
     // ─── isCanonical Tests ───────────────────────────────────────────
@@ -331,19 +332,19 @@ contract CanonicalFactoryTest is Test {
 
     // ─── Multiple Mirrors Tests ──────────────────────────────────────
 
-    function test_multiple_mirrors_different_targets() public {
-        // Deploy mirror to TARGET_CHAIN
+    function test_multiple_mirrors_different_origins() public {
+        // Deploy mirror for ORIGIN_CONTRACT
         address mirror1 = _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
 
-        // Deploy mirror to TARGET_CHAIN_2 (different target, no rate limit conflict since different pair)
-        address mirror2 = _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
+        // Deploy mirror for ORIGIN_CONTRACT_2 (different origin, same target chain)
+        address mirror2 = _deployTestMirror(ORIGIN_CONTRACT_2, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
 
         // Both canonical
         assertTrue(factory.isCanonical(mirror1));
         assertTrue(factory.isCanonical(mirror2));
 
         // Different addresses
-        assertTrue(mirror1 != mirror2, "Different target chains = different mirrors");
+        assertTrue(mirror1 != mirror2, "Different origins = different mirrors");
     }
 
     // ─── Admin Tests ─────────────────────────────────────────────────
@@ -580,13 +581,13 @@ contract CanonicalFactoryTest is Test {
         _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
         assertEq(factory.getMirrorCount(), 1, "Should be 1 after first deploy");
 
-        _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
+        _deployTestMirror(ORIGIN_CONTRACT_2, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
         assertEq(factory.getMirrorCount(), 2, "Should be 2 after second deploy");
     }
 
     function test_getAllMirrors_returns_all() public {
         address mirror1 = _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
-        address mirror2 = _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
+        address mirror2 = _deployTestMirror(ORIGIN_CONTRACT_2, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
 
         address[] memory all = factory.getAllMirrors();
         assertEq(all.length, 2);
@@ -596,7 +597,7 @@ contract CanonicalFactoryTest is Test {
 
     function test_getMirrors_pagination() public {
         address mirror1 = _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
-        address mirror2 = _deployTestMirror(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
+        address mirror2 = _deployTestMirror(ORIGIN_CONTRACT_2, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
 
         // Get first page (offset 0, limit 1)
         address[] memory page1 = factory.getMirrors(0, 1);
