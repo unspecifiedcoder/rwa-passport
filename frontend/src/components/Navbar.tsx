@@ -9,6 +9,10 @@ const NAV_ITEMS = [
   { href: "/mirrors", label: "Mirrors" },
   { href: "/verify", label: "Verify" },
   { href: "/attest", label: "Attest" },
+  { href: "/governance", label: "Governance" },
+  { href: "/staking", label: "Staking" },
+  { href: "/analytics", label: "Analytics" },
+  { href: "/portfolio", label: "Portfolio" },
 ];
 
 export function Navbar() {
