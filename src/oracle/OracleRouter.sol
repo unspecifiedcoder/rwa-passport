@@ -59,21 +59,22 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         uint256 timestamp;
     }
 
+    // ─── Constants ────────────────────────────────────────────────────
+    /// @notice Maximum observations to store per asset
+    uint256 public constant MAX_OBSERVATIONS = 24;
+
     // ─── Storage ─────────────────────────────────────────────────────
     /// @notice Price feed configurations per asset
     mapping(address => FeedConfig) public feedConfigs;
 
     /// @notice TWAP observations per asset (circular buffer)
-    mapping(address => Observation[MAX_OBSERVATIONS]) public observations;
+    mapping(address => Observation[24]) internal _observations;
 
     /// @notice Current write index per asset in circular buffer
     mapping(address => uint256) public observationIndex;
 
     /// @notice Number of valid observations per asset
     mapping(address => uint256) public observationCount;
-
-    /// @notice Maximum observations to store per asset
-    uint256 public constant MAX_OBSERVATIONS = 24; // 24 hourly observations
 
     /// @notice NAV deviation threshold in basis points (default: 500 = 5%)
     uint256 public deviationThresholdBps;
@@ -209,7 +210,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         }
 
         uint256 idx = observationIndex[asset];
-        observations[asset][idx] = Observation({ price: normalizedPrice, timestamp: block.timestamp });
+        _observations[asset][idx] = Observation({ price: normalizedPrice, timestamp: block.timestamp });
         observationIndex[asset] = (idx + 1) % MAX_OBSERVATIONS;
         if (observationCount[asset] < MAX_OBSERVATIONS) {
             observationCount[asset]++;
@@ -226,7 +227,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         uint256 matched;
 
         for (uint256 i = 0; i < count; i++) {
-            Observation storage obs = observations[asset][i];
+            Observation storage obs = _observations[asset][i];
             if (obs.timestamp >= cutoff) {
                 totalPrice += obs.price;
                 matched++;
