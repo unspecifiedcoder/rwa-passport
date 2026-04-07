@@ -59,9 +59,10 @@ contract RWAHookTest is Test, Deployers {
     address constant DEFAULT_TX_ORIGIN = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
     /// @notice Default hookData encoding DEFAULT_TX_ORIGIN (required after tx.origin removal)
-    bytes internal DEFAULT_HOOK_DATA = abi.encode(DEFAULT_TX_ORIGIN);
+    bytes internal DEFAULT_HOOK_DATA;
 
     function setUp() public {
+        DEFAULT_HOOK_DATA = abi.encode(DEFAULT_TX_ORIGIN);
         vm.warp(100_000);
         owner = address(this);
         trader = makeAddr("trader");
