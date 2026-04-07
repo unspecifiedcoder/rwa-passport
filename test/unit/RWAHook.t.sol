@@ -58,6 +58,9 @@ contract RWAHookTest is Test, Deployers {
     ///      not tx.origin. The hook uses tx.origin for compliance checks.
     address constant DEFAULT_TX_ORIGIN = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
+    /// @notice Default hookData encoding DEFAULT_TX_ORIGIN (required after tx.origin removal)
+    bytes internal DEFAULT_HOOK_DATA = abi.encode(DEFAULT_TX_ORIGIN);
+
     function setUp() public {
         vm.warp(100_000);
         owner = address(this);
@@ -152,13 +155,13 @@ contract RWAHookTest is Test, Deployers {
         usdc.approve(address(swapRouter), type(uint256).max);
         usdc.approve(address(modifyLiquidityRouter), type(uint256).max);
 
-        // 9. Add initial liquidity
+        // 9. Add initial liquidity (hookData required with user address)
         modifyLiquidityRouter.modifyLiquidity(
             poolKey,
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(0)
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
     }
 
@@ -183,7 +186,7 @@ contract RWAHookTest is Test, Deployers {
     }
 
     function _doSwap(bool zeroForOne, int256 amount) internal returns (BalanceDelta) {
-        return swap(poolKey, zeroForOne, amount, ZERO_BYTES);
+        return swap(poolKey, zeroForOne, amount, DEFAULT_HOOK_DATA);
     }
 
     // ─── beforeInitialize Tests ──────────────────────────────────────
@@ -244,7 +247,7 @@ contract RWAHookTest is Test, Deployers {
                 zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
         vm.stopPrank();
     }
@@ -275,7 +278,7 @@ contract RWAHookTest is Test, Deployers {
                 zeroForOne: true, amountSpecified: -10, sqrtPriceLimitX96: MIN_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
         vm.stopPrank();
     }
@@ -428,17 +431,9 @@ contract RWAHookTest is Test, Deployers {
         );
     }
 
-    function test_beforeSwap_empty_hookData_falls_back_to_txOrigin() public {
-        // Enable compliance
-        compliance.setEnforceCompliance(true);
-        // Whitelist DEFAULT_TX_ORIGIN (the tx.origin in Foundry tests)
-        compliance.setWhitelisted(DEFAULT_TX_ORIGIN, true);
-        // Whitelist all addresses involved in V4 token transfers
-        compliance.setWhitelisted(address(this), true);
-        compliance.setWhitelisted(address(swapRouter), true);
-        compliance.setWhitelisted(address(manager), true);
-
-        // Empty hookData → falls back to tx.origin → compliant → passes
+    function test_beforeSwap_empty_hookData_reverts() public {
+        // Empty hookData should revert with HookDataRequired (tx.origin fallback removed)
+        vm.expectRevert();
         swapRouter.swap(
             poolKey,
             IPoolManager.SwapParams({

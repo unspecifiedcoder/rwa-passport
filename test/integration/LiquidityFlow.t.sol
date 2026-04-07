@@ -53,6 +53,7 @@ contract LiquidityFlowTest is Test, Deployers {
 
     /// @dev Foundry's default tx.origin — needed for compliance whitelisting
     address constant DEFAULT_TX_ORIGIN = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
+    bytes internal DEFAULT_HOOK_DATA = abi.encode(DEFAULT_TX_ORIGIN);
 
     function setUp() public {
         vm.warp(100_000);
@@ -171,7 +172,7 @@ contract LiquidityFlowTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -200, tickUpper: 200, liquidityDelta: 100e18, salt: bytes32(0)
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
 
         // 7. Trader approves and swaps
@@ -189,7 +190,7 @@ contract LiquidityFlowTest is Test, Deployers {
                 sqrtPriceLimitX96: mirrorAddr < address(usdc) ? MIN_PRICE_LIMIT : MAX_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
         vm.stopPrank();
 
@@ -244,7 +245,7 @@ contract LiquidityFlowTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -200, tickUpper: 200, liquidityDelta: 100e18, salt: bytes32(0)
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
 
         // 4. Trade immediately — NAV is fresh, fee = baseFee (500 = 5 bps)
@@ -252,7 +253,7 @@ contract LiquidityFlowTest is Test, Deployers {
         uint256 age1 = block.timestamp - lastNAV1;
         assertTrue(age1 <= 1 hours, "NAV should be fresh before first trade");
 
-        swap(poolKey, true, -10, ZERO_BYTES);
+        swap(poolKey, true, -10, DEFAULT_HOOK_DATA);
 
         // 5. Warp 12 hours — NAV becomes stale
         vm.warp(block.timestamp + 12 hours);
@@ -262,7 +263,7 @@ contract LiquidityFlowTest is Test, Deployers {
         assertTrue(age2 >= 6 hours, "NAV should be stale after warp");
 
         // Trade still succeeds but at high fee (staleFee = 5000 = 50 bps)
-        swap(poolKey, false, -10, ZERO_BYTES);
+        swap(poolKey, false, -10, DEFAULT_HOOK_DATA);
 
         // 6. Update NAV — resets fee
         hook.updateNAV(poolId);
@@ -271,7 +272,7 @@ contract LiquidityFlowTest is Test, Deployers {
         assertEq(lastNAV3, block.timestamp, "NAV should be refreshed");
 
         // 7. Trade again — fee should be baseFee again
-        swap(poolKey, true, -10, ZERO_BYTES);
+        swap(poolKey, true, -10, DEFAULT_HOOK_DATA);
     }
 
     // ═══════════════════════════════════════════════════════════════════
