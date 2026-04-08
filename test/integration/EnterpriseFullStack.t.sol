@@ -133,8 +133,12 @@ contract EnterpriseFullStackTest is Test {
     function test_complianceIntegration() public {
         // Set up credentials
         vm.startPrank(deployer);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days);
-        compliance.setCredential(bob, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days
+        );
+        compliance.setCredential(
+            bob, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
         vm.stopPrank();
 
         // Both credentialed - transfer should be compliant

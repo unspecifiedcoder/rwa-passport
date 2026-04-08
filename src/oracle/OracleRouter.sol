@@ -210,7 +210,8 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         }
 
         uint256 idx = observationIndex[asset];
-        _observations[asset][idx] = Observation({ price: normalizedPrice, timestamp: block.timestamp });
+        _observations[asset][idx] =
+            Observation({ price: normalizedPrice, timestamp: block.timestamp });
         observationIndex[asset] = (idx + 1) % MAX_OBSERVATIONS;
         if (observationCount[asset] < MAX_OBSERVATIONS) {
             observationCount[asset]++;

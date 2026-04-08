@@ -237,12 +237,7 @@ contract ProtocolToken is ERC20, ERC20Permit, ERC20Votes, Ownable2Step {
     }
 
     /// @dev Required override for ERC20Permit + ERC20Votes
-    function nonces(address owner_)
-        public
-        view
-        override(ERC20Permit, Nonces)
-        returns (uint256)
-    {
+    function nonces(address owner_) public view override(ERC20Permit, Nonces) returns (uint256) {
         return super.nonces(owner_);
     }
 

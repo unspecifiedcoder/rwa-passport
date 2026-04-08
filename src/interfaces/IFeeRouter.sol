@@ -26,7 +26,9 @@ interface IFeeRouter {
     );
 
     /// @notice Emitted when fee split is updated
-    event FeeSplitUpdated(uint256 treasuryBps, uint256 stakingBps, uint256 insuranceBps, uint256 burnBps);
+    event FeeSplitUpdated(
+        uint256 treasuryBps, uint256 stakingBps, uint256 insuranceBps, uint256 burnBps
+    );
 
     /// @notice Collect fees from a protocol action
     function collectFee(address token, uint256 amount, address payer) external;

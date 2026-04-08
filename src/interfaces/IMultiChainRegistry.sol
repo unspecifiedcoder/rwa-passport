@@ -23,7 +23,9 @@ interface IMultiChainRegistry {
     );
 
     /// @notice Emitted when cross-chain supply is synced
-    event SupplySynced(address indexed originContract, uint256 indexed chainId, uint256 totalMinted);
+    event SupplySynced(
+        address indexed originContract, uint256 indexed chainId, uint256 totalMinted
+    );
 
     /// @notice Emitted when a new chain is supported
     event ChainAdded(uint256 indexed chainId, string name);

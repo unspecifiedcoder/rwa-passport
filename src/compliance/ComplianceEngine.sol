@@ -85,7 +85,11 @@ contract ComplianceEngine is IComplianceEngine, Ownable2Step {
     // ─── Credential Management ───────────────────────────────────────
 
     /// @inheritdoc IComplianceEngine
-    function setCredential(address investor, InvestorTier tier, uint256 expiry) external onlyProvider {
+    function setCredential(
+        address investor,
+        InvestorTier tier,
+        uint256 expiry
+    ) external onlyProvider {
         if (investor == address(0)) revert ZeroAddress();
         if (tier == InvestorTier.NONE) revert InvalidTier();
 

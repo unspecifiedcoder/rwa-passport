@@ -63,8 +63,9 @@ contract DeployEnterprise is Script {
         console.log("ProtocolToken (XYT):", address(token));
 
         // 4. Governor
-        XythumGovernor governor =
-            new XythumGovernor(IVotes(address(token)), TimelockController(payable(address(timelock))));
+        XythumGovernor governor = new XythumGovernor(
+            IVotes(address(token)), TimelockController(payable(address(timelock)))
+        );
         console.log("XythumGovernor:", address(governor));
 
         // 5. Grant Governor proposer role on timelock

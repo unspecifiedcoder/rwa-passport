@@ -8,7 +8,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /// @notice Interface for the XYT governance token with vote delegation and vesting
 interface IProtocolToken is IERC20 {
     /// @notice Emitted when tokens are vested to a beneficiary
-    event TokensVested(address indexed beneficiary, uint256 amount, uint256 cliff, uint256 duration);
+    event TokensVested(
+        address indexed beneficiary, uint256 amount, uint256 cliff, uint256 duration
+    );
 
     /// @notice Emitted when vested tokens are released
     event TokensReleased(address indexed beneficiary, uint256 amount);

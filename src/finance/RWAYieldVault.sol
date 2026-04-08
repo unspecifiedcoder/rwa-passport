@@ -74,7 +74,11 @@ contract RWAYieldVault is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     // ─── Events ──────────────────────────────────────────────────────
     event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
     event Withdraw(
-        address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares
+        address indexed caller,
+        address indexed receiver,
+        address indexed owner,
+        uint256 assets,
+        uint256 shares
     );
     event YieldHarvested(uint256 amount, uint256 timestamp);
     event PerformanceFeeCollected(uint256 amount, address indexed recipient);

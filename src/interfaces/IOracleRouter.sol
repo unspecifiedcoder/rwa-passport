@@ -17,7 +17,9 @@ interface IOracleRouter {
     event PriceFeedRegistered(address indexed asset, address indexed feed);
 
     /// @notice Emitted when a price is validated against NAV attestation
-    event NAVValidated(address indexed asset, uint256 oraclePrice, uint256 attestedNAV, bool withinThreshold);
+    event NAVValidated(
+        address indexed asset, uint256 oraclePrice, uint256 attestedNAV, bool withinThreshold
+    );
 
     /// @notice Emitted when price deviation threshold is updated
     event DeviationThresholdUpdated(uint256 oldThreshold, uint256 newThreshold);
