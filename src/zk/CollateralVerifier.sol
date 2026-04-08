@@ -143,6 +143,15 @@ contract CollateralVerifier is IZKCollateral, Ownable2Step {
         return proofs[proofId].active;
     }
 
+    /// @notice Get the prover address for a proof
+    /// @param proofId The proof identifier
+    /// @return prover The address that submitted the proof
+    function getProofProver(bytes32 proofId) external view returns (address prover) {
+        ProofRecord storage record = proofs[proofId];
+        if (record.asset == address(0)) revert ProofNotFound(proofId);
+        return record.prover;
+    }
+
     /// @notice Register an asset for use in ZK proofs
     /// @param asset The asset contract address
     /// @param assetId The circuit-compatible field element ID

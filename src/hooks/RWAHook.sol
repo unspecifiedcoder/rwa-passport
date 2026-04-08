@@ -37,6 +37,8 @@ contract RWAHook is IHooks {
     error PoolPaused(PoolId poolId);
     error HookNotImplemented();
     error OnlyOwner();
+    error HookDataRequired();
+    error InvalidFeeConfig(uint24 baseFee, uint24 staleFee);
 
     // ─── Events ──────────────────────────────────────────────────────
     event PoolConfigured(PoolId indexed poolId, address xythumToken);
@@ -149,14 +151,9 @@ contract RWAHook is IHooks {
 
         if (!config.active) revert PoolPaused(poolId);
 
-        // Decode the actual user address from hookData
-        // If hookData is empty, fall back to tx.origin (backward compatible)
-        address swapper;
-        if (hookData.length >= 20) {
-            swapper = abi.decode(hookData, (address));
-        } else {
-            swapper = tx.origin; // TODO(v2): Remove tx.origin fallback entirely
-        }
+        // Decode the actual user address from hookData (required)
+        if (hookData.length < 20) revert HookDataRequired();
+        address swapper = abi.decode(hookData, (address));
 
         IXythumToken xToken = IXythumToken(config.xythumToken);
         if (!xToken.isCompliant(swapper, swapper)) {
@@ -196,13 +193,11 @@ contract RWAHook is IHooks {
         PoolId poolId = key.toId();
         PoolConfig storage config = poolConfigs[poolId];
 
-        // Decode LP address from hookData, fall back to tx.origin
-        address lp;
-        if (hookData.length >= 20) {
-            lp = abi.decode(hookData, (address));
-        } else {
-            lp = tx.origin; // TODO(v2): Remove tx.origin fallback entirely
-        }
+        if (!config.active) revert PoolPaused(poolId);
+
+        // Decode LP address from hookData (required)
+        if (hookData.length < 20) revert HookDataRequired();
+        address lp = abi.decode(hookData, (address));
 
         // Compliance check for LP
         IXythumToken xToken = IXythumToken(config.xythumToken);
@@ -299,13 +294,13 @@ contract RWAHook is IHooks {
     // ─── Internal ────────────────────────────────────────────────────
 
     /// @notice Calculate dynamic fee based on NAV staleness
-    /// @dev Fresh (≤1hr): baseFee, Stale (>6hr): staleFee, between: linear interpolation
+    /// @dev Fresh (<=1hr): baseFee, Stale (>6hr): staleFee, between: linear interpolation
     function _calculateFee(PoolConfig storage config) internal view returns (uint24) {
         uint256 age = block.timestamp - config.lastNAVUpdate;
 
         if (age <= NAV_FRESH_WINDOW) {
             return config.baseFee;
-        } else if (age >= NAV_STALE_WINDOW) {
+        } else if (age >= NAV_STALE_WINDOW || config.staleFee <= config.baseFee) {
             return config.staleFee;
         } else {
             // Linear interpolation between baseFee and staleFee

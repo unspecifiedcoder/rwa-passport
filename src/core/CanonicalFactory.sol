@@ -97,6 +97,10 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
         bytes calldata signatures,
         uint256 signerBitmap
     ) external payable whenNotPaused returns (address mirror) {
+        // Verify the attestation targets THIS chain (same check as deployMirrorDirect)
+        if (att.targetChainId != block.chainid) {
+            revert WrongTargetChain(att.targetChainId, block.chainid);
+        }
         return _deployMirrorInternal(att, signatures, signerBitmap);
     }
 
