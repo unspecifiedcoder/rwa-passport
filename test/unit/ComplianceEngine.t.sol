@@ -174,10 +174,7 @@ contract ComplianceEngineTest is Test {
 
         vm.prank(owner);
         compliance.setAssetRule(
-            asset,
-            IComplianceEngine.InvestorTier.ACCREDITED,
-            1_000_000 ether,
-            true
+            asset, IComplianceEngine.InvestorTier.ACCREDITED, 1_000_000 ether, true
         );
 
         vm.startPrank(provider);
