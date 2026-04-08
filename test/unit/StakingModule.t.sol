@@ -58,7 +58,7 @@ contract StakingModuleTest is Test {
         vm.prank(alice);
         staking.stake(10_000 ether, 30 days);
 
-        (uint256 amount, uint256 weighted,,,, ) = staking.stakes(alice);
+        (uint256 amount, uint256 weighted,,,,) = staking.stakes(alice);
         assertEq(amount, 10_000 ether);
         // 1.5x multiplier for 30 days
         assertEq(weighted, 15_000 ether);
