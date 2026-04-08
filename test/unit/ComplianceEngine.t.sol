@@ -26,15 +26,22 @@ contract ComplianceEngineTest is Test {
 
     function test_setCredential() public {
         vm.prank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days
+        );
 
-        assertEq(uint256(compliance.getInvestorTier(alice)), uint256(IComplianceEngine.InvestorTier.ACCREDITED));
+        assertEq(
+            uint256(compliance.getInvestorTier(alice)),
+            uint256(IComplianceEngine.InvestorTier.ACCREDITED)
+        );
         assertTrue(compliance.isCredentialValid(alice));
     }
 
     function test_credentialExpiry() public {
         vm.prank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 30 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 30 days
+        );
 
         assertTrue(compliance.isCredentialValid(alice));
 
@@ -61,16 +68,27 @@ contract ComplianceEngineTest is Test {
         vm.prank(provider);
         compliance.batchSetCredentials(investors, tiers, expiries);
 
-        assertEq(uint256(compliance.getInvestorTier(alice)), uint256(IComplianceEngine.InvestorTier.ACCREDITED));
-        assertEq(uint256(compliance.getInvestorTier(bob)), uint256(IComplianceEngine.InvestorTier.RETAIL));
-        assertEq(uint256(compliance.getInvestorTier(charlie)), uint256(IComplianceEngine.InvestorTier.INSTITUTIONAL));
+        assertEq(
+            uint256(compliance.getInvestorTier(alice)),
+            uint256(IComplianceEngine.InvestorTier.ACCREDITED)
+        );
+        assertEq(
+            uint256(compliance.getInvestorTier(bob)),
+            uint256(IComplianceEngine.InvestorTier.RETAIL)
+        );
+        assertEq(
+            uint256(compliance.getInvestorTier(charlie)),
+            uint256(IComplianceEngine.InvestorTier.INSTITUTIONAL)
+        );
         assertEq(compliance.totalCredentialed(), 3);
     }
 
     function test_unauthorizedProviderReverts() public {
         vm.prank(charlie);
         vm.expectRevert(ComplianceEngine.OnlyProvider.selector);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
     }
 
     // ─── Blacklist ───────────────────────────────────────────────────
@@ -98,7 +116,9 @@ contract ComplianceEngineTest is Test {
         compliance.blacklist(alice, keccak256("sanctions"));
 
         vm.prank(provider);
-        vm.expectRevert(abi.encodeWithSelector(ComplianceEngine.AlreadyBlacklisted.selector, alice));
+        vm.expectRevert(
+            abi.encodeWithSelector(ComplianceEngine.AlreadyBlacklisted.selector, alice)
+        );
         compliance.blacklist(alice, keccak256("sanctions_again"));
     }
 
@@ -106,8 +126,12 @@ contract ComplianceEngineTest is Test {
 
     function test_compliantTransfer() public {
         vm.startPrank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
-        compliance.setCredential(bob, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
+        compliance.setCredential(
+            bob, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
         vm.stopPrank();
 
         assertTrue(compliance.isTransferCompliant(alice, bob, 1000 ether));
@@ -115,7 +139,9 @@ contract ComplianceEngineTest is Test {
 
     function test_nonCompliantTransferNoCredential() public {
         vm.prank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
 
         // Bob has no credential
         assertFalse(compliance.isTransferCompliant(alice, bob, 1000 ether));
@@ -123,8 +149,12 @@ contract ComplianceEngineTest is Test {
 
     function test_nonCompliantTransferBlacklisted() public {
         vm.startPrank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
-        compliance.setCredential(bob, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
+        compliance.setCredential(
+            bob, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
         compliance.blacklist(bob, keccak256("sanctions"));
         vm.stopPrank();
 
@@ -151,8 +181,12 @@ contract ComplianceEngineTest is Test {
         );
 
         vm.startPrank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days);
-        compliance.setCredential(bob, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.RETAIL, block.timestamp + 365 days
+        );
+        compliance.setCredential(
+            bob, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days
+        );
         vm.stopPrank();
 
         // Retail investor fails asset-level check (requires ACCREDITED)
@@ -160,7 +194,9 @@ contract ComplianceEngineTest is Test {
 
         // Both accredited passes
         vm.prank(provider);
-        compliance.setCredential(alice, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days);
+        compliance.setCredential(
+            alice, IComplianceEngine.InvestorTier.ACCREDITED, block.timestamp + 365 days
+        );
         assertTrue(compliance.isAssetTransferCompliant(asset, alice, bob, 1000 ether));
     }
 
@@ -170,6 +206,9 @@ contract ComplianceEngineTest is Test {
         vm.prank(owner);
         compliance.setDefaultMinimumTier(IComplianceEngine.InvestorTier.ACCREDITED);
 
-        assertEq(uint256(compliance.defaultMinimumTier()), uint256(IComplianceEngine.InvestorTier.ACCREDITED));
+        assertEq(
+            uint256(compliance.defaultMinimumTier()),
+            uint256(IComplianceEngine.InvestorTier.ACCREDITED)
+        );
     }
 }

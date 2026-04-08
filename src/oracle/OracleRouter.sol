@@ -125,12 +125,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         FeedConfig storage config = feedConfigs[asset];
         if (!config.active) revert FeedNotRegistered(asset);
 
-        (
-            ,
-            int256 answer,
-            ,
-            uint256 updatedAt,
-        ) = IAggregatorV3(config.feed).latestRoundData();
+        (, int256 answer,, uint256 updatedAt,) = IAggregatorV3(config.feed).latestRoundData();
 
         if (answer <= 0) revert NegativePrice(asset, answer);
 
@@ -158,12 +153,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         FeedConfig storage config = feedConfigs[asset];
         if (!config.active) revert FeedNotRegistered(asset);
 
-        (
-            ,
-            int256 answer,
-            ,
-            uint256 updatedAt,
-        ) = IAggregatorV3(config.feed).latestRoundData();
+        (, int256 answer,, uint256 updatedAt,) = IAggregatorV3(config.feed).latestRoundData();
 
         if (answer <= 0) return false;
 

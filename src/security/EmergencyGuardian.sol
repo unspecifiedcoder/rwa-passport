@@ -107,9 +107,7 @@ contract EmergencyGuardian is IEmergencyGuardian {
 
         // Attempt to pause all registered contracts
         for (uint256 i = 0; i < pausableContracts.length; i++) {
-            (bool success,) = pausableContracts[i].call(
-                abi.encodeWithSignature("pause()")
-            );
+            (bool success,) = pausableContracts[i].call(abi.encodeWithSignature("pause()"));
             if (!success) emit PauseFailed(pausableContracts[i]);
         }
 
@@ -135,9 +133,7 @@ contract EmergencyGuardian is IEmergencyGuardian {
 
         // Attempt to unpause all registered contracts
         for (uint256 i = 0; i < pausableContracts.length; i++) {
-            (bool success,) = pausableContracts[i].call(
-                abi.encodeWithSignature("unpause()")
-            );
+            (bool success,) = pausableContracts[i].call(abi.encodeWithSignature("unpause()"));
             if (!success) emit PauseFailed(pausableContracts[i]);
         }
 

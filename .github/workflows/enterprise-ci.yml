@@ -21,8 +21,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Build contracts
         run: forge build --sizes
@@ -49,8 +47,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Run unit tests
         run: forge test --match-path "test/unit/*" -vvv --gas-report | tee gas-report.txt
@@ -73,8 +69,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Run integration tests
         run: forge test --match-path "test/integration/*" -vvv
@@ -91,8 +85,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Run invariant tests
         run: forge test --match-path "test/invariant/*" -vvv
@@ -109,8 +101,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Install Python
         uses: actions/setup-python@v5
@@ -146,8 +136,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Check formatting
         run: forge fmt --check
@@ -176,8 +164,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Generate gas snapshot
         run: forge snapshot --check || forge snapshot
@@ -200,8 +186,6 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Generate coverage report
         run: forge coverage --report summary | tee coverage.txt
