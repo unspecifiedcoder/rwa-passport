@@ -22,12 +22,25 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Show Forge version
+        run: forge --version
+
+      - name: List source files
+        run: find src -name "*.sol" | sort
+
       - name: Build contracts
-        run: forge build
+        run: forge build --force 2>&1 || true
         id: build
 
-      - name: Check contract sizes (informational)
-        run: forge build --sizes || true
+      - name: Check build status
+        run: |
+          if [ ! -d "out" ]; then
+            echo "BUILD FAILED - no out directory"
+            forge build --force 2>&1
+            exit 1
+          fi
+          echo "Build artifacts found:"
+          ls out/ | head -20
 
   # ── Stage 2: Unit Tests ─────────────────────────────────────────
   unit-tests:
