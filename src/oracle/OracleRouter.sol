@@ -67,8 +67,11 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
     /// @notice Price feed configurations per asset
     mapping(address => FeedConfig) public feedConfigs;
 
-    /// @notice TWAP observations per asset (circular buffer)
-    mapping(address => Observation[24]) internal _observations;
+    /// @notice TWAP observation prices per asset (circular buffer, index 0-23)
+    mapping(address => mapping(uint256 => uint256)) internal _obsPrices;
+
+    /// @notice TWAP observation timestamps per asset (circular buffer, index 0-23)
+    mapping(address => mapping(uint256 => uint256)) internal _obsTimestamps;
 
     /// @notice Current write index per asset in circular buffer
     mapping(address => uint256) public observationIndex;
@@ -200,8 +203,8 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         }
 
         uint256 idx = observationIndex[asset];
-        _observations[asset][idx] =
-            Observation({ price: normalizedPrice, timestamp: block.timestamp });
+        _obsPrices[asset][idx] = normalizedPrice;
+        _obsTimestamps[asset][idx] = block.timestamp;
         observationIndex[asset] = (idx + 1) % MAX_OBSERVATIONS;
         if (observationCount[asset] < MAX_OBSERVATIONS) {
             observationCount[asset]++;
@@ -218,9 +221,8 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         uint256 matched;
 
         for (uint256 i = 0; i < count; i++) {
-            Observation storage obs = _observations[asset][i];
-            if (obs.timestamp >= cutoff) {
-                totalPrice += obs.price;
+            if (_obsTimestamps[asset][i] >= cutoff) {
+                totalPrice += _obsPrices[asset][i];
                 matched++;
             }
         }
