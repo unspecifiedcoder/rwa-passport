@@ -96,8 +96,7 @@ contract DeployEnterprise is Script {
         // 9. Emergency Guardian
         address[] memory guardians = new address[](1);
         guardians[0] = deployer;
-        EmergencyGuardian emergencyGuardian =
-            new EmergencyGuardian(address(timelock), guardians);
+        EmergencyGuardian emergencyGuardian = new EmergencyGuardian(address(timelock), guardians);
         console.log("EmergencyGuardian:", address(emergencyGuardian));
 
         // 10. Oracle Router
