@@ -7,11 +7,15 @@ import { ProtocolTimelock } from "../src/governance/ProtocolTimelock.sol";
 import { XythumGovernor } from "../src/governance/XythumGovernor.sol";
 import { ProtocolTreasury } from "../src/governance/ProtocolTreasury.sol";
 import { StakingModule } from "../src/staking/StakingModule.sol";
+import { LiquidityMining } from "../src/staking/LiquidityMining.sol";
 import { FeeRouter } from "../src/finance/FeeRouter.sol";
 import { ComplianceEngine } from "../src/compliance/ComplianceEngine.sol";
 import { EmergencyGuardian } from "../src/security/EmergencyGuardian.sol";
+import { SignerSlashingCourt } from "../src/security/SignerSlashingCourt.sol";
 import { OracleRouter } from "../src/oracle/OracleRouter.sol";
 import { MultiChainRegistry } from "../src/registry/MultiChainRegistry.sol";
+import { SignerRegistry } from "../src/core/SignerRegistry.sol";
+import { AttestationRegistry } from "../src/core/AttestationRegistry.sol";
 import { IVotes } from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import { TimelockController } from "@openzeppelin/contracts/governance/TimelockController.sol";
 
@@ -30,6 +34,7 @@ contract DeployEnterprise is Script {
     uint256 constant EPOCH_DURATION = 30 days;
     uint256 constant ORACLE_DEVIATION_BPS = 500; // 5%
     uint256 constant TRANSFER_LIMIT = 10_000_000 ether; // 10M anti-whale
+    uint256 constant MIN_SIGNER_STAKE = 100_000 ether; // 100K XYT minimum to be a signer
 
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
@@ -107,7 +112,38 @@ contract DeployEnterprise is Script {
         MultiChainRegistry registry = new MultiChainRegistry(deployer);
         console.log("MultiChainRegistry:", address(registry));
 
-        // ── Phase 4: Wire & Configure ────────────────────────────────
+        // ── Phase 4: Accountability Layer (NEW) ──────────────────────
+
+        // 12. Liquidity Mining (incentivizes LP providers with XYT emissions)
+        LiquidityMining liquidityMining = new LiquidityMining(address(token), deployer);
+        token.setTransferLimitExempt(address(liquidityMining), true);
+        console.log("LiquidityMining:", address(liquidityMining));
+
+        // 13. Signer Slashing Court
+        //     NOTE: Requires an existing SignerRegistry + AttestationRegistry address.
+        //     On a fresh deployment these would be read from env vars; here we skip
+        //     wiring unless SIGNER_REGISTRY env var is set.
+        address signerRegistryAddr = vm.envOr("SIGNER_REGISTRY", address(0));
+        address attestationRegistryAddr = vm.envOr("ATTESTATION_REGISTRY", address(0));
+        if (signerRegistryAddr != address(0) && attestationRegistryAddr != address(0)) {
+            bytes32 domainSep = AttestationRegistry(attestationRegistryAddr).DOMAIN_SEPARATOR();
+            SignerSlashingCourt court = new SignerSlashingCourt(
+                signerRegistryAddr, address(staking), domainSep, deployer
+            );
+            staking.setSlasher(address(court), true);
+            console.log("SignerSlashingCourt:", address(court));
+
+            // Wire the StakingModule into SignerRegistry + set minimum stake
+            SignerRegistry(signerRegistryAddr).setStakingModule(address(staking));
+            SignerRegistry(signerRegistryAddr).setMinStake(MIN_SIGNER_STAKE);
+            console.log("SignerRegistry wired: minStake =", MIN_SIGNER_STAKE / 1 ether, "XYT");
+        } else {
+            console.log(
+                "SignerSlashingCourt skipped (set SIGNER_REGISTRY + ATTESTATION_REGISTRY env)"
+            );
+        }
+
+        // ── Phase 5: Wire & Configure ────────────────────────────────
 
         // Set anti-whale transfer limit
         token.setTransferLimit(TRANSFER_LIMIT);
@@ -133,17 +169,13 @@ contract DeployEnterprise is Script {
         // ── Summary ──────────────────────────────────────────────────
         console.log("---");
         console.log("=== ENTERPRISE DEPLOYMENT COMPLETE ===");
-        console.log("Total contracts deployed: 11");
         console.log("Initial XYT supply:", INITIAL_MINT / 1 ether, "XYT");
         console.log("Transfer limit:", TRANSFER_LIMIT / 1 ether, "XYT");
         console.log("Timelock delay:", TIMELOCK_DELAY / 1 hours, "hours");
+        console.log("Min signer stake:", MIN_SIGNER_STAKE / 1 ether, "XYT");
         console.log("---");
-        console.log("IMPORTANT: Transfer ownership to timelock for full decentralization:");
-        console.log("  token.transferOwnership(address(timelock))");
-        console.log("  staking.transferOwnership(address(timelock))");
-        console.log("  feeRouter.transferOwnership(address(timelock))");
-        console.log("  compliance.transferOwnership(address(timelock))");
-        console.log("  oracle.transferOwnership(address(timelock))");
-        console.log("  registry.transferOwnership(address(timelock))");
+        console.log("NEXT STEP: Run Decentralize.s.sol to transfer ownership to timelock.");
+        console.log("  forge script script/Decentralize.s.sol:Decentralize \\");
+        console.log("    --rpc-url $RPC_URL --broadcast -vvvv");
     }
 }

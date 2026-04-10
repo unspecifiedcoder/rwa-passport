@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import { ISignerRegistry } from "../interfaces/ISignerRegistry.sol";
+import { IStakingModule } from "../interfaces/IStakingModule.sol";
 
 /// @title SignerRegistry
 /// @author Xythum Protocol
@@ -17,6 +18,7 @@ contract SignerRegistry is ISignerRegistry, Ownable2Step {
     error InvalidThreshold(uint256 threshold, uint256 signerCount);
     error RemovalCooldownNotElapsed(address signer, uint256 availableAt);
     error ZeroAddress();
+    error InsufficientStake(address signer, uint256 staked, uint256 required);
 
     // ─── Constants ───────────────────────────────────────────────────
     /// @notice Cooldown period before a signer can actually be removed (prevents flash attacks)
@@ -25,6 +27,12 @@ contract SignerRegistry is ISignerRegistry, Ownable2Step {
     // ─── Events ──────────────────────────────────────────────────────
     /// @notice Emitted when signer removal cooldown is initiated
     event RemovalInitiated(address indexed signer, uint256 cooldownExpiresAt);
+
+    /// @notice Emitted when the staking module is updated
+    event StakingModuleUpdated(address indexed oldModule, address indexed newModule);
+
+    /// @notice Emitted when the minimum stake requirement is updated
+    event MinStakeUpdated(uint256 oldMin, uint256 newMin);
 
     // ─── Storage ─────────────────────────────────────────────────────
     /// @notice Whether an address is an active signer
@@ -42,6 +50,12 @@ contract SignerRegistry is ISignerRegistry, Ownable2Step {
     /// @notice Timestamp when removal was initiated for a signer (0 = not initiated)
     mapping(address => uint256) public removalTimestamp;
 
+    /// @notice Staking module for minimum stake enforcement (address(0) = disabled)
+    IStakingModule public stakingModule;
+
+    /// @notice Minimum XYT stake required to register as a signer (0 = no requirement)
+    uint256 public minStake;
+
     // ─── Constructor ─────────────────────────────────────────────────
     /// @notice Initialize the signer registry
     /// @param _owner Address that will own this contract
@@ -58,11 +72,36 @@ contract SignerRegistry is ISignerRegistry, Ownable2Step {
         if (signer == address(0)) revert ZeroAddress();
         if (isSigner[signer]) revert SignerAlreadyRegistered(signer);
 
+        // Enforce minimum stake requirement if configured
+        // Skipped if stakingModule is not set or minStake is 0 (bootstrap mode)
+        if (address(stakingModule) != address(0) && minStake > 0) {
+            uint256 staked = stakingModule.stakedBalance(signer);
+            if (staked < minStake) {
+                revert InsufficientStake(signer, staked, minStake);
+            }
+        }
+
         signerList.push(signer);
         signerIndex[signer] = signerList.length; // 1-indexed
         isSigner[signer] = true;
 
         emit SignerRegistered(signer, signerList.length - 1);
+    }
+
+    /// @notice Set the staking module used for signer stake enforcement
+    /// @param _stakingModule Address of the staking module (address(0) to disable)
+    function setStakingModule(address _stakingModule) external onlyOwner {
+        address old = address(stakingModule);
+        stakingModule = IStakingModule(_stakingModule);
+        emit StakingModuleUpdated(old, _stakingModule);
+    }
+
+    /// @notice Set the minimum stake required to register as a signer
+    /// @param _minStake New minimum stake in wei (0 to disable enforcement)
+    function setMinStake(uint256 _minStake) external onlyOwner {
+        uint256 old = minStake;
+        minStake = _minStake;
+        emit MinStakeUpdated(old, _minStake);
     }
 
     /// @inheritdoc ISignerRegistry
