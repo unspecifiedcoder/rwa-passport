@@ -47,6 +47,10 @@ contract MultiChainRegistry is IMultiChainRegistry, Ownable2Step {
     /// @notice Aggregate minted supply per origin asset
     mapping(bytes32 => uint256) public aggregateSupplyMap;
 
+    /// @notice Reverse lookup: (originContract, targetChainId) => originChainId
+    /// @dev Used by syncSupply to find the origin chain without iterating
+    mapping(address => mapping(uint256 => uint256)) public targetToOriginChain;
+
     // ─── Events ──────────────────────────────────────────────────────
     event RelayerUpdated(address indexed relayer, bool active);
     event ChainStatusUpdated(uint256 indexed chainId, bool active);
@@ -70,11 +74,7 @@ contract MultiChainRegistry is IMultiChainRegistry, Ownable2Step {
             supportedChainIds.push(chainId);
         }
 
-        chainInfos[chainId] = ChainInfo({
-            name: name,
-            active: true,
-            registeredAt: block.timestamp
-        });
+        chainInfos[chainId] = ChainInfo({ name: name, active: true, registeredAt: block.timestamp });
 
         emit ChainAdded(chainId, name);
     }
@@ -114,6 +114,7 @@ contract MultiChainRegistry is IMultiChainRegistry, Ownable2Step {
         });
 
         deploymentChains[assetKey].push(targetChainId);
+        targetToOriginChain[originContract][targetChainId] = originChainId;
         totalDeployments++;
 
         emit CrossChainDeploymentRegistered(originContract, targetChainId, mirrorAddress);
@@ -124,11 +125,16 @@ contract MultiChainRegistry is IMultiChainRegistry, Ownable2Step {
         external
         onlyRelayer
     {
-        bytes32 assetKey = _assetKey(originContract, chainId);
+        // chainId here is the target chain (where the mirror lives).
+        // Look up the origin chain via the reverse mapping.
+        uint256 originChainId = targetToOriginChain[originContract][chainId];
+        require(originChainId != 0, "MultiChainRegistry: no deployment found");
+
+        bytes32 assetKey = _assetKey(originContract, originChainId);
         deploymentMap[assetKey][chainId].totalMinted = totalMinted;
 
-        // Recalculate aggregate supply
-        _recalculateAggregateSupply(originContract, chainId);
+        // Recalculate aggregate supply using the ORIGIN chain ID
+        _recalculateAggregateSupply(originContract, originChainId);
 
         emit SupplySynced(originContract, chainId, totalMinted);
     }

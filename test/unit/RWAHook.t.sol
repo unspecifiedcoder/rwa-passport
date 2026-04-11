@@ -335,7 +335,7 @@ contract RWAHookTest is Test, Deployers {
     // ─── beforeAddLiquidity Tests ────────────────────────────────────
 
     function test_beforeAddLiquidity_compliant_succeeds() public {
-        // Enable compliance + whitelist DEFAULT_TX_ORIGIN (tx.origin in Foundry)
+        // Enable compliance + whitelist DEFAULT_TX_ORIGIN (encoded in hookData)
         compliance.setEnforceCompliance(true);
         compliance.setWhitelisted(DEFAULT_TX_ORIGIN, true);
         // Also whitelist V4 internal addresses for token transfers
@@ -348,7 +348,7 @@ contract RWAHookTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(uint256(1))
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
     }
 

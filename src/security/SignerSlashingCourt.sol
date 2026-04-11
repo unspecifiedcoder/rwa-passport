@@ -132,41 +132,51 @@ contract SignerSlashingCourt is Ownable2Step, ReentrancyGuard {
 
         // 2. Verify both attestations have the same attestationId (same nonce + pair)
         bytes32 attId1 = AttestationLib.attestationId(att1);
-        bytes32 attId2 = AttestationLib.attestationId(att2);
+        {
+            bytes32 attId2 = AttestationLib.attestationId(att2);
+            if (attId1 != attId2) revert InvalidEvidenceType();
+        }
 
-        // Both must have same identity (pairKey + nonce) but different content
-        if (attId1 != attId2) revert InvalidEvidenceType();
-
-        // Content must actually differ — compare the full hashes
+        // 3. Content must actually differ — compare the full hashes
         bytes32 hash1 = AttestationLib.hash(att1);
         bytes32 hash2 = AttestationLib.hash(att2);
         if (hash1 == hash2) revert AttestationsIdentical();
 
-        // 3. Verify both signatures recover to the claimed signer
-        bytes32 digest1 = AttestationLib.toTypedDataHash(att1, DOMAIN_SEPARATOR);
-        bytes32 digest2 = AttestationLib.toTypedDataHash(att2, DOMAIN_SEPARATOR);
+        // 4. Verify both signatures recover to the claimed signer
+        _verifySignaturePair(att1, sig1, att2, sig2, signer);
 
-        address recovered1 = ECDSA.recover(digest1, sig1);
-        address recovered2 = ECDSA.recover(digest2, sig2);
-
-        if (recovered1 != signer) revert SignatureMismatch(recovered1, signer);
-        if (recovered2 != signer) revert SignatureMismatch(recovered2, signer);
-
-        // 4. Compute evidence ID and check not already processed
-        bytes32 evidenceId = keccak256(
-            abi.encode("double-sign", signer, attId1, hash1 < hash2 ? hash1 : hash2, hash1 < hash2 ? hash2 : hash1)
-        );
+        // 5. Compute evidence ID and check not already processed
+        bytes32 evidenceId = _computeDoubleSignEvidenceId(signer, attId1, hash1, hash2);
         if (processedEvidence[evidenceId]) revert EvidenceAlreadySubmitted(evidenceId);
         processedEvidence[evidenceId] = true;
 
-        // 5. Slash the signer
+        // 6. Slash the signer
+        _recordDoubleSignSlashAndEmit(signer, attId1);
+    }
+
+    /// @dev Internal helper — compute order-independent evidence ID for double-signing
+    function _computeDoubleSignEvidenceId(
+        address signer,
+        bytes32 attId,
+        bytes32 hash1,
+        bytes32 hash2
+    ) internal pure returns (bytes32) {
+        bytes32 lower = hash1 < hash2 ? hash1 : hash2;
+        bytes32 upper = hash1 < hash2 ? hash2 : hash1;
+        return keccak256(abi.encode("double-sign", signer, attId, lower, upper));
+    }
+
+    /// @dev Internal helper — slash and emit event for double-signing
+    function _recordDoubleSignSlashAndEmit(address signer, bytes32 attId) internal {
         uint256 slashAmount = doubleSignSlashAmount;
         slashingCount[signer]++;
         totalSlashedAmount[signer] += slashAmount;
 
         stakingModule.slash(signer, slashAmount, keccak256("DOUBLE_SIGNING"));
 
-        emit DoubleSigningSlashed(signer, attId1, attId2, slashAmount, msg.sender);
+        // Note: the second attestationId is the same as the first (same pair+nonce),
+        // so we pass attId for both to keep the event signature compatible
+        emit DoubleSigningSlashed(signer, attId, attId, slashAmount, msg.sender);
     }
 
     /// @notice Submit evidence that a signer signed two attestations with conflicting NAV
@@ -190,39 +200,75 @@ contract SignerSlashingCourt is Ownable2Step, ReentrancyGuard {
         if (!signerRegistry.isActiveSigner(signer)) revert SignerNotRegistered(signer);
 
         // 2. Verify both attestations reference the same pairKey
-        bytes32 pairKey1 = AttestationLib.pairKey(att1.originContract, att1.originChainId, att1.targetChainId);
-        bytes32 pairKey2 = AttestationLib.pairKey(att2.originContract, att2.originChainId, att2.targetChainId);
-        if (pairKey1 != pairKey2) revert InvalidEvidenceType();
+        bytes32 pairKey1 =
+            AttestationLib.pairKey(att1.originContract, att1.originChainId, att1.targetChainId);
+        {
+            bytes32 pairKey2 = AttestationLib.pairKey(
+                att2.originContract, att2.originChainId, att2.targetChainId
+            );
+            if (pairKey1 != pairKey2) revert InvalidEvidenceType();
+        }
 
         // 3. Verify navRoots actually differ (otherwise not a conflict)
         if (att1.navRoot == att2.navRoot) revert AttestationsIdentical();
 
         // 4. Verify both signatures recover to the claimed signer
-        bytes32 digest1 = AttestationLib.toTypedDataHash(att1, DOMAIN_SEPARATOR);
-        bytes32 digest2 = AttestationLib.toTypedDataHash(att2, DOMAIN_SEPARATOR);
+        _verifySignaturePair(att1, sig1, att2, sig2, signer);
 
-        address recovered1 = ECDSA.recover(digest1, sig1);
-        address recovered2 = ECDSA.recover(digest2, sig2);
-
-        if (recovered1 != signer) revert SignatureMismatch(recovered1, signer);
-        if (recovered2 != signer) revert SignatureMismatch(recovered2, signer);
-
-        // 5. Compute evidence ID (order-independent)
-        bytes32 lower = att1.navRoot < att2.navRoot ? att1.navRoot : att2.navRoot;
-        bytes32 upper = att1.navRoot < att2.navRoot ? att2.navRoot : att1.navRoot;
+        // 5. Compute evidence ID and check not already processed
         bytes32 evidenceId =
-            keccak256(abi.encode("conflicting-nav", signer, pairKey1, lower, upper));
+            _computeConflictingNAVEvidenceId(signer, pairKey1, att1.navRoot, att2.navRoot);
         if (processedEvidence[evidenceId]) revert EvidenceAlreadySubmitted(evidenceId);
         processedEvidence[evidenceId] = true;
 
         // 6. Slash the signer
+        _recordSlashAndEmit(signer, pairKey1, att1.navRoot, att2.navRoot);
+    }
+
+    /// @dev Internal helper — verify two signatures recover to the same signer
+    function _verifySignaturePair(
+        AttestationLib.Attestation calldata att1,
+        bytes calldata sig1,
+        AttestationLib.Attestation calldata att2,
+        bytes calldata sig2,
+        address signer
+    ) internal view {
+        bytes32 digest1 = AttestationLib.toTypedDataHash(att1, DOMAIN_SEPARATOR);
+        bytes32 digest2 = AttestationLib.toTypedDataHash(att2, DOMAIN_SEPARATOR);
+
+        address recovered1 = ECDSA.recover(digest1, sig1);
+        if (recovered1 != signer) revert SignatureMismatch(recovered1, signer);
+
+        address recovered2 = ECDSA.recover(digest2, sig2);
+        if (recovered2 != signer) revert SignatureMismatch(recovered2, signer);
+    }
+
+    /// @dev Internal helper — compute order-independent evidence ID for conflicting NAV
+    function _computeConflictingNAVEvidenceId(
+        address signer,
+        bytes32 pairKey,
+        bytes32 navRoot1,
+        bytes32 navRoot2
+    ) internal pure returns (bytes32) {
+        bytes32 lower = navRoot1 < navRoot2 ? navRoot1 : navRoot2;
+        bytes32 upper = navRoot1 < navRoot2 ? navRoot2 : navRoot1;
+        return keccak256(abi.encode("conflicting-nav", signer, pairKey, lower, upper));
+    }
+
+    /// @dev Internal helper — slash and emit event (isolates stack frame)
+    function _recordSlashAndEmit(
+        address signer,
+        bytes32 pairKey,
+        bytes32 navRoot1,
+        bytes32 navRoot2
+    ) internal {
         uint256 slashAmount = conflictingNAVSlashAmount;
         slashingCount[signer]++;
         totalSlashedAmount[signer] += slashAmount;
 
         stakingModule.slash(signer, slashAmount, keccak256("CONFLICTING_NAV"));
 
-        emit ConflictingNAVSlashed(signer, pairKey1, att1.navRoot, att2.navRoot, slashAmount, msg.sender);
+        emit ConflictingNAVSlashed(signer, pairKey, navRoot1, navRoot2, slashAmount, msg.sender);
     }
 
     // ─── Admin (Governance Only) ─────────────────────────────────────

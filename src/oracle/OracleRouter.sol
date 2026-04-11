@@ -106,10 +106,7 @@ contract OracleRouter is IOracleRouter, Ownable2Step {
         }
 
         feedConfigs[asset] = FeedConfig({
-            feed: priceFeed,
-            maxStaleness: 1 hours,
-            decimals: feedDecimals,
-            active: true
+            feed: priceFeed, maxStaleness: 1 hours, decimals: feedDecimals, active: true
         });
 
         emit PriceFeedRegistered(asset, priceFeed);

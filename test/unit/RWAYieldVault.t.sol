@@ -24,12 +24,7 @@ contract RWAYieldVaultTest is Test {
         vm.startPrank(owner);
         token = new ProtocolToken(owner, INITIAL_MINT, treasury);
         vault = new RWAYieldVault(
-            address(token),
-            "Xythum RWA Vault",
-            "xVault",
-            owner,
-            feeRecipient,
-            DEPOSIT_CAP
+            address(token), "Xythum RWA Vault", "xVault", owner, feeRecipient, DEPOSIT_CAP
         );
         vault.setYieldSource(yieldSource, true);
         vm.stopPrank();
@@ -91,11 +86,15 @@ contract RWAYieldVaultTest is Test {
         vm.prank(alice);
         vault.deposit(10_000 ether, alice);
 
+        // Redeem within the 20% instant withdrawal limit (2000 ether = 20% of 10000)
         vm.prank(alice);
-        vault.redeem(5_000 ether, alice, alice);
+        vault.redeem(2_000 ether, alice, alice);
 
-        assertEq(vault.totalAssets(), 5_000 ether);
-        assertEq(vault.balanceOf(alice), 5_000 ether);
+        // Total assets should be ~8000 ether (minus tiny dust from DEAD_SHARES offset)
+        // First-depositor protection mints DEAD_SHARES to 0xdead which slightly
+        // skews share/asset math by ~1e-12, so we use approximate equality.
+        assertApproxEqRel(vault.totalAssets(), 8_000 ether, 0.001e18);
+        assertEq(vault.balanceOf(alice), 8_000 ether);
     }
 
     function test_withdrawalLimit() public {
@@ -137,6 +136,11 @@ contract RWAYieldVaultTest is Test {
     }
 
     function test_proportionalYieldDistribution() public {
+        // Raise the instant withdrawal cap to 100% for this test so alice can
+        // redeem her full share of the yield in one tx.
+        vm.prank(owner);
+        vault.setMaxInstantWithdrawalBps(10_000);
+
         // Alice deposits 75k, Bob deposits 25k
         vm.prank(alice);
         vault.deposit(75_000 ether, alice);

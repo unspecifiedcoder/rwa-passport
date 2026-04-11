@@ -95,9 +95,7 @@ contract Decentralize is Script {
                 timelock.execute(contracts[i], 0, callData, bytes32(0), salt);
                 console.log("Ownership accepted:", names[i]);
             } catch {
-                console.log(
-                    "WARN: Could not schedule acceptOwnership. Timelock delay must be 0"
-                );
+                console.log("WARN: Could not schedule acceptOwnership. Timelock delay must be 0");
                 console.log("      for bootstrap. Manually accept from timelock via governance.");
             }
         }
@@ -115,6 +113,6 @@ contract Decentralize is Script {
         console.log("FINAL MANUAL STEP (recommended):");
         console.log("  After verifying all transfers worked, renounce DEFAULT_ADMIN_ROLE:");
         console.log("    timelock.renounceRole(DEFAULT_ADMIN_ROLE, deployer)");
-        console.log("  This makes governance fully trustless — no one can bypass the timelock.");
+        console.log("  This makes governance fully trustless - no one can bypass the timelock.");
     }
 }

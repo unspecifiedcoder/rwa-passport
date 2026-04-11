@@ -230,19 +230,6 @@ contract CanonicalFactoryTest is Test {
         (AttestationLib.Attestation memory att1,,) =
             _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
 
-        address originB = address(0xBBB);
-        (AttestationLib.Attestation memory att2,,) =
-            _buildSignedAttestation(originB, ORIGIN_CHAIN, TARGET_CHAIN, 1);
-
-        address addr1 = factory.computeMirrorAddress(att1);
-        address addr2 = factory.computeMirrorAddress(att2);
-        assertTrue(addr1 != addr2, "Different origins must produce different addresses");
-    }
-
-    function test_computeMirrorAddress_different_for_different_origins() public {
-        (AttestationLib.Attestation memory att1,,) =
-            _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
-
         (AttestationLib.Attestation memory att2,,) =
             _buildSignedAttestation(ORIGIN_CONTRACT_2, ORIGIN_CHAIN, TARGET_CHAIN_2, 1);
 

@@ -66,10 +66,7 @@ contract SignerSlashingCourtTest is Test {
 
         // 6. Deploy slashing court + authorize it as slasher
         court = new SignerSlashingCourt(
-            address(signerRegistry),
-            address(staking),
-            attestationRegistry.DOMAIN_SEPARATOR(),
-            owner
+            address(signerRegistry), address(staking), attestationRegistry.DOMAIN_SEPARATOR(), owner
         );
         staking.setSlasher(address(court), true);
     }
@@ -95,8 +92,7 @@ contract SignerSlashingCourtTest is Test {
             nonce: nonce
         });
 
-        bytes32 digest =
-            AttestationLib.toTypedDataHash(att, attestationRegistry.DOMAIN_SEPARATOR());
+        bytes32 digest = AttestationLib.toTypedDataHash(att, attestationRegistry.DOMAIN_SEPARATOR());
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(helper.signerKeys(signerIdx), digest);
         sig = abi.encodePacked(r, s, v);
     }
@@ -121,9 +117,7 @@ contract SignerSlashingCourtTest is Test {
 
         // Verify slashing occurred
         assertEq(staking.stakedBalance(signer), stakeBefore - court.doubleSignSlashAmount());
-        assertEq(
-            token.balanceOf(insuranceFund), insuranceBefore + court.doubleSignSlashAmount()
-        );
+        assertEq(token.balanceOf(insuranceFund), insuranceBefore + court.doubleSignSlashAmount());
         assertEq(court.slashingCount(signer), 1);
         assertTrue(court.hasBeenSlashed(signer));
     }

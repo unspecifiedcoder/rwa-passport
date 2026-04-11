@@ -171,36 +171,16 @@ contract FullFlowTest is Test {
     //  INTEGRATION TEST: MULTIPLE TARGETS FROM SAME ORIGIN
     // ═══════════════════════════════════════════════════════════════════
 
-    /// @notice Deploy mirrors for the same origin on 3 different target chains
+    /// @notice Deploy mirrors for 3 different origins on the same target chain
     function test_multiple_origins_to_same_target() public {
         uint256 originChainId = 11155111;
-
-        // Origin 1
         address origin1 = address(sourceRWA);
-        (AttestationLib.Attestation memory att1, bytes memory sigs1, uint256 bitmap1) =
-            _buildSignedAttestation(origin1, originChainId, block.chainid, 1);
-
-        vm.prank(user);
-        ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_ARB, att1, sigs1, bitmap1);
-        address mirror1 = factory.computeMirrorAddress(att1);
-
-        // Origin 2 (different origin contract, same target chain)
         address origin2 = address(0xBEEF);
-        (AttestationLib.Attestation memory att2, bytes memory sigs2, uint256 bitmap2) =
-            _buildSignedAttestation(origin2, originChainId, block.chainid, 1);
-
-        vm.prank(user);
-        ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_BASE, att2, sigs2, bitmap2);
-        address mirror2 = factory.computeMirrorAddress(att2);
-
-        // Origin 3 (different origin contract)
         address origin3 = address(0xCAFE);
-        (AttestationLib.Attestation memory att3, bytes memory sigs3, uint256 bitmap3) =
-            _buildSignedAttestation(origin3, originChainId, block.chainid, 1);
 
-        vm.prank(user);
-        ccipSender.sendAttestation{ value: 1 ether }(TARGET_SELECTOR_OP, att3, sigs3, bitmap3);
-        address mirror3 = factory.computeMirrorAddress(att3);
+        address mirror1 = _bridgeAndComputeMirror(origin1, originChainId, TARGET_SELECTOR_ARB);
+        address mirror2 = _bridgeAndComputeMirror(origin2, originChainId, TARGET_SELECTOR_BASE);
+        address mirror3 = _bridgeAndComputeMirror(origin3, originChainId, TARGET_SELECTOR_OP);
 
         // All 3 are canonical
         assertTrue(factory.isCanonical(mirror1), "Mirror 1 should be canonical");
@@ -219,6 +199,19 @@ contract FullFlowTest is Test {
         assertEq(XythumToken(mirror1).originChainId(), originChainId);
         assertEq(XythumToken(mirror2).originChainId(), originChainId);
         assertEq(XythumToken(mirror3).originChainId(), originChainId);
+    }
+
+    /// @dev Helper to build attestation, send via CCIP, and return the mirror address
+    function _bridgeAndComputeMirror(address origin, uint256 originChainId, uint64 targetSelector)
+        internal
+        returns (address mirror)
+    {
+        (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
+            _buildSignedAttestation(origin, originChainId, block.chainid, 1);
+
+        vm.prank(user);
+        ccipSender.sendAttestation{ value: 1 ether }(targetSelector, att, sigs, bitmap);
+        return factory.computeMirrorAddress(att);
     }
 
     // ═══════════════════════════════════════════════════════════════════

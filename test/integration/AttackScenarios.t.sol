@@ -164,25 +164,27 @@ contract AttackScenariosTest is Test {
     //  ATTACK 3: Replay on Different Target Chain
     // ═══════════════════════════════════════════════════════════════════
 
-    /// @notice Attestation for chain A replayed to chain B with same nonce.
-    ///         Should SUCCEED — different target chain = different mirror.
+    /// @notice Two different origins deployed on the same target chain.
+    ///         Should SUCCEED — different origins produce different mirror addresses.
+    /// @dev Note: after the targetChainId check added in PR #2, this test can no
+    ///      longer replay the same attestation across chains in a single Foundry
+    ///      test (block.chainid is fixed per test). Instead we verify that two
+    ///      different origins produce distinct canonical mirrors on the same chain.
     function test_attack_replay_different_chain() public {
-        address origin = address(0xBBBB);
+        address originA = address(0xBBBB);
+        address originB = address(0xBBBC);
 
-        // Deploy mirror on chain A (target 42161)
-        address mirror1 = _deployCanonicalMirror(origin, 1, block.chainid, 1);
-
-        // Deploy mirror for different origin on same chain — different salt, same nonce
-        address mirror2 = _deployCanonicalMirror(address(0xBBBC), 1, block.chainid, 1);
+        address mirror1 = _deployCanonicalMirror(originA, 1, block.chainid, 1);
+        address mirror2 = _deployCanonicalMirror(originB, 1, block.chainid, 1);
 
         // Both should be canonical and different
         assertTrue(factory.isCanonical(mirror1), "Mirror 1 canonical");
         assertTrue(factory.isCanonical(mirror2), "Mirror 2 canonical");
         assertTrue(mirror1 != mirror2, "Mirrors should be different addresses");
 
-        // Both point to same origin
-        assertEq(XythumToken(mirror1).originContract(), origin);
-        assertEq(XythumToken(mirror2).originContract(), origin);
+        // Each mirror points to its own origin
+        assertEq(XythumToken(mirror1).originContract(), originA);
+        assertEq(XythumToken(mirror2).originContract(), originB);
     }
 
     // ═══════════════════════════════════════════════════════════════════

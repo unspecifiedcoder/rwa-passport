@@ -161,7 +161,10 @@ contract LiquidityMining is Ownable2Step, ReentrancyGuard, Pausable {
         // Verify we have enough reward tokens to cover the new period
         uint256 required = newRewardRate * duration;
         uint256 balance = rewardToken.balanceOf(address(this));
-        if (balance < totalRewardsReserved + required - _reservedForPool(pool, newRewardRate, duration)) {
+        if (
+            balance
+                < totalRewardsReserved + required - _reservedForPool(pool, newRewardRate, duration)
+        ) {
             revert InsufficientRewardBalance(required, balance);
         }
 
@@ -302,8 +305,9 @@ contract LiquidityMining is Ownable2Step, ReentrancyGuard, Pausable {
     {
         if (poolId >= pools.length) revert InvalidPool(poolId);
         PoolInfo storage pool = pools[poolId];
-        return
-            (address(pool.lpToken), pool.rewardRate, pool.periodFinish, pool.totalStaked, pool.active);
+        return (
+            address(pool.lpToken), pool.rewardRate, pool.periodFinish, pool.totalStaked, pool.active
+        );
     }
 
     /// @notice Get user staked amount in a pool
@@ -359,8 +363,9 @@ contract LiquidityMining is Ownable2Step, ReentrancyGuard, Pausable {
         if (pool.totalStaked == 0) return pool.rewardPerTokenStored;
 
         uint256 timeElapsed = _lastTimeRewardApplicable(pool) - pool.lastUpdateTime;
-        return pool.rewardPerTokenStored
-            + (timeElapsed * pool.rewardRate * PRECISION) / pool.totalStaked;
+        return
+            pool.rewardPerTokenStored + (timeElapsed * pool.rewardRate * PRECISION)
+                / pool.totalStaked;
     }
 
     function _lastTimeRewardApplicable(PoolInfo storage pool) internal view returns (uint256) {

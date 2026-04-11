@@ -17,9 +17,7 @@ interface IMultiChainRegistry {
 
     /// @notice Emitted when a cross-chain deployment is registered
     event CrossChainDeploymentRegistered(
-        address indexed originContract,
-        uint256 indexed chainId,
-        address mirrorAddress
+        address indexed originContract, uint256 indexed chainId, address mirrorAddress
     );
 
     /// @notice Emitted when cross-chain supply is synced
