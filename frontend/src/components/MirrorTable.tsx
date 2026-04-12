@@ -1,7 +1,9 @@
 "use client";
 
-import { truncateAddress } from "@/lib/utils";
 import { ChainBadge } from "./ChainBadge";
+import { Hash } from "./primitives/Hash";
+import { Pill } from "./primitives/Pill";
+import { TerminalPanel } from "./primitives/TerminalPanel";
 
 export interface MirrorEntry {
   address: string;
@@ -14,78 +16,75 @@ export interface MirrorEntry {
 
 interface MirrorTableProps {
   mirrors: MirrorEntry[];
+  freshAddrs?: Set<string>;
 }
 
-export function MirrorTable({ mirrors }: MirrorTableProps) {
+export function MirrorTable({ mirrors, freshAddrs }: MirrorTableProps) {
   if (mirrors.length === 0) {
     return (
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 text-center text-gray-500">
-        No mirrors deployed yet. Deploy contracts to testnet to see data.
-      </div>
+      <TerminalPanel label="REGISTRY · LIVE" status="idle" meta="0 ENTRIES">
+        <div className="p-12 text-center">
+          <div className="font-display italic text-3xl text-ink-muted mb-2">
+            No mirrors yet.
+          </div>
+          <div className="font-mono text-[10px] uppercase tracking-stamp text-ink-faint">
+            ISSUE A MIRROR FROM /attest TO POPULATE THE REGISTRY
+          </div>
+        </div>
+      </TerminalPanel>
     );
   }
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-gray-800">
-            <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">
-              Symbol
-            </th>
-            <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">
-              Origin Chain
-            </th>
-            <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">
-              Target Chain
-            </th>
-            <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">
-              Status
-            </th>
-            <th className="text-left text-xs font-medium text-gray-400 px-4 py-3">
-              Address
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {mirrors.map((mirror) => (
-            <tr
-              key={mirror.address}
-              className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
-            >
-              <td className="px-4 py-3 font-mono text-sm font-medium text-white">
-                {mirror.symbol}
-              </td>
-              <td className="px-4 py-3">
-                <ChainBadge chainId={mirror.originChainId} />
-              </td>
-              <td className="px-4 py-3">
-                <ChainBadge chainId={mirror.targetChainId} />
-              </td>
-              <td className="px-4 py-3">
-                <span
-                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                    mirror.status === "active"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-yellow-500/20 text-yellow-400"
-                  }`}
-                >
-                  {mirror.status === "active" ? "Active" : "Paused"}
-                </span>
-              </td>
-              <td className="px-4 py-3">
-                <button
-                  onClick={() => navigator.clipboard.writeText(mirror.address)}
-                  className="font-mono text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
-                  title="Click to copy"
-                >
-                  {truncateAddress(mirror.address)}
-                </button>
-              </td>
+    <TerminalPanel label="REGISTRY · ENUMERATION" status="live" meta={`${mirrors.length} ENTRIES`}>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-cover-3">
+              <th className="text-left font-mono text-[9px] uppercase tracking-stamp text-leaf-2 px-5 py-3">
+                Symbol
+              </th>
+              <th className="text-left font-mono text-[9px] uppercase tracking-stamp text-leaf-2 px-5 py-3">
+                Origin
+              </th>
+              <th className="text-left font-mono text-[9px] uppercase tracking-stamp text-leaf-2 px-5 py-3">
+                Target
+              </th>
+              <th className="text-left font-mono text-[9px] uppercase tracking-stamp text-leaf-2 px-5 py-3">
+                Status
+              </th>
+              <th className="text-left font-mono text-[9px] uppercase tracking-stamp text-leaf-2 px-5 py-3">
+                Address
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {mirrors.map((m) => {
+              const isFresh = freshAddrs?.has(m.address);
+              return (
+                <tr
+                  key={`${m.targetChainId}-${m.address}`}
+                  className={`border-b border-cover-3/50 hover:bg-cover-2/40 transition-colors ${isFresh ? "fresh-row" : ""}`}
+                >
+                  <td className="px-5 py-3 font-display text-xl text-leaf-0 flex items-center gap-2">
+                    {m.symbol}
+                    {isFresh && <Pill label="NEW" tone="verde" className="!text-[8px]" />}
+                  </td>
+                  <td className="px-5 py-3"><ChainBadge chainId={m.originChainId} /></td>
+                  <td className="px-5 py-3"><ChainBadge chainId={m.targetChainId} /></td>
+                  <td className="px-5 py-3">
+                    <Pill
+                      label={m.status === "active" ? "ACTIVE" : "PAUSED"}
+                      tone={m.status === "active" ? "verde" : "wax"}
+                    />
+                  </td>
+                  <td className="px-5 py-3"><Hash addr={m.address} /></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </TerminalPanel>
   );
 }

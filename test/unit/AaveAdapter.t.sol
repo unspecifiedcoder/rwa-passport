@@ -64,7 +64,7 @@ contract AaveAdapterTest is Test {
         );
 
         // 2. Deploy canonical mirror (used as the collateral asset)
-        mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, 42161, 1);
+        mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, block.chainid, 1);
 
         // 3. Deploy ZK stack
         mockGroth16 = new MockGroth16Verifier();
@@ -78,7 +78,7 @@ contract AaveAdapterTest is Test {
         // 5. Deploy receipt token (a separate canonical mirror repurposed)
         // For testing: create a simple XythumToken that adapter can mint/burn
         // We deploy another mirror and make the adapter an authorized minter
-        address receiptAddr = _deployCanonicalMirror(address(0xBBB), 1, 42161, 2);
+        address receiptAddr = _deployCanonicalMirror(address(0xBBB), 1, block.chainid, 2);
         receiptToken = XythumToken(receiptAddr);
 
         // Make adapter an authorized minter on the receipt token

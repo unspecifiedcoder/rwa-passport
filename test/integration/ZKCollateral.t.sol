@@ -65,11 +65,11 @@ contract ZKCollateralTest is Test {
         );
 
         // ── Deploy canonical mirror (the "collateral" asset) ──
-        mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, 42161, 1);
+        mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, block.chainid, 1);
         mirrorToken = XythumToken(mirrorAddr);
 
         // ── Deploy receipt token (another canonical mirror repurposed) ──
-        receiptAddr = _deployCanonicalMirror(address(0xBBB), 1, 42161, 2);
+        receiptAddr = _deployCanonicalMirror(address(0xBBB), 1, block.chainid, 2);
         receiptToken = XythumToken(receiptAddr);
 
         // ── Deploy ZK stack ──

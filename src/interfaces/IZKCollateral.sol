@@ -32,4 +32,9 @@ interface IZKCollateral {
         external
         view
         returns (uint256 minValue, address asset, uint256 timestamp);
+
+    /// @notice Get the prover address for a proof
+    /// @param proofId The proof identifier
+    /// @return prover The address that submitted the proof
+    function getProofProver(bytes32 proofId) external view returns (address prover);
 }

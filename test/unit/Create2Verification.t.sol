@@ -69,7 +69,7 @@ contract Create2VerificationTest is Test {
     ///         factory.computeMirrorAddress() and the actual deployed address.
     function test_create2_matches_ethereum_spec() public {
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xAAAA), 1, 42161, 1);
+            _buildSignedAttestation(address(0xAAAA), 1, block.chainid, 1);
 
         // 1. Get predicted address from factory
         address predicted = factory.computeMirrorAddress(att);
@@ -111,7 +111,7 @@ contract Create2VerificationTest is Test {
     /// @notice CREATE2 address is deterministic — same inputs always give same address
     function test_create2_deterministic_across_calls() public view {
         AttestationLib.Attestation memory att =
-            helper.buildAttestation(address(0xBBBB), 1, 42161, 1);
+            helper.buildAttestation(address(0xBBBB), 1, block.chainid, 1);
 
         address addr1 = factory.computeMirrorAddress(att);
         address addr2 = factory.computeMirrorAddress(att);
@@ -128,7 +128,7 @@ contract Create2VerificationTest is Test {
         );
 
         AttestationLib.Attestation memory att =
-            helper.buildAttestation(address(0xCCCC), 1, 42161, 1);
+            helper.buildAttestation(address(0xCCCC), 1, block.chainid, 1);
 
         address addr1 = factory.computeMirrorAddress(att);
         address addr2 = factory2.computeMirrorAddress(att);
@@ -139,7 +139,7 @@ contract Create2VerificationTest is Test {
     /// @notice Verify code at deployed address matches XythumToken
     function test_create2_deployed_code_matches() public {
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xDDDD), 1, 42161, 2);
+            _buildSignedAttestation(address(0xDDDD), 1, block.chainid, 2);
 
         address mirror = factory.deployMirror(att, sigs, bitmap);
 

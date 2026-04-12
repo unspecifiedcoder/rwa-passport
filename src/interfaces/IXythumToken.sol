@@ -17,6 +17,22 @@ interface IXythumToken is IERC20 {
     /// @param amount Amount to burn
     function burn(address from, uint256 amount) external;
 
+    /// @notice Burn caller's own tokens against a specific lockId.
+    ///         Emits `BurnedForLock` for off-chain signers to pick up.
+    /// @param amount Amount to burn
+    /// @param lockId Identifier of the originating lock (one-shot)
+    function burnForLock(uint256 amount, bytes32 lockId) external;
+
+    /// @notice Increase mint cap and mint `amount` to `to` (factory-only).
+    ///         Cumulative high-water mark — cap only grows.
+    /// @param to Recipient
+    /// @param amount Amount minted (also added to cap)
+    /// @param lockId Originating lockId (audit trail)
+    function bumpCapAndMint(address to, uint256 amount, bytes32 lockId) external;
+
+    /// @notice True if the given lockId has already been burned-against.
+    function burnedForLock(bytes32 lockId) external view returns (bool);
+
     /// @notice Get the origin contract address on the source chain
     /// @return The address of the original RWA contract
     function originContract() external view returns (address);

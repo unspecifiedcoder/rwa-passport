@@ -86,7 +86,7 @@ contract AttackScenariosTest is Test {
 
         // ── Receipt token for adapter ──
         compliance.setEnforceCompliance(false);
-        receiptAddr = _deployCanonicalMirror(address(0xFFFF), 1, 42161, 99);
+        receiptAddr = _deployCanonicalMirror(address(0xFFFF), 1, block.chainid, 99);
         vm.prank(address(factory));
         XythumToken(receiptAddr).setAuthorizedMinter(address(adapter), true);
         adapter.setReceiptToken(receiptAddr);
@@ -134,7 +134,7 @@ contract AttackScenariosTest is Test {
     function test_attack_signer_collusion_below_threshold() public {
         // Only 2 signers sign (below threshold of 3)
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xDEAD), 1, 42161, 1, 2);
+            _buildSignedAttestation(address(0xDEAD), 1, block.chainid, 1, 2);
 
         // Attempt to deploy mirror with insufficient signatures
         vm.expectRevert(); // InsufficientSignatures
@@ -149,7 +149,7 @@ contract AttackScenariosTest is Test {
     ///         Second attempt must revert.
     function test_attack_replay_attestation() public {
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xAAAA), 1, 42161, 1, THRESHOLD);
+            _buildSignedAttestation(address(0xAAAA), 1, block.chainid, 1, THRESHOLD);
 
         // First deployment succeeds
         address mirror1 = factory.deployMirror(att, sigs, bitmap);
@@ -170,10 +170,10 @@ contract AttackScenariosTest is Test {
         address origin = address(0xBBBB);
 
         // Deploy mirror on chain A (target 42161)
-        address mirror1 = _deployCanonicalMirror(origin, 1, 42161, 1);
+        address mirror1 = _deployCanonicalMirror(origin, 1, block.chainid, 1);
 
-        // Deploy mirror on chain B (target 84532) — different target, same nonce
-        address mirror2 = _deployCanonicalMirror(origin, 1, 84532, 1);
+        // Deploy mirror for different origin on same chain — different salt, same nonce
+        address mirror2 = _deployCanonicalMirror(address(0xBBBC), 1, block.chainid, 1);
 
         // Both should be canonical and different
         assertTrue(factory.isCanonical(mirror1), "Mirror 1 canonical");
@@ -195,7 +195,7 @@ contract AttackScenariosTest is Test {
     function test_attack_frontrun_mirror_deployment() public {
         // Build attestation
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xCCCC), 1, 42161, 1, THRESHOLD);
+            _buildSignedAttestation(address(0xCCCC), 1, block.chainid, 1, THRESHOLD);
 
         // Compute expected mirror address
         address predicted = factory.computeMirrorAddress(att);
@@ -228,7 +228,7 @@ contract AttackScenariosTest is Test {
     ///         would validate the attestation root freshness.
     function test_attack_stale_nav_exploitation() public {
         // Deploy mirror
-        address mirrorAddr = _deployCanonicalMirror(address(0xDDDD), 1, 42161, 5);
+        address mirrorAddr = _deployCanonicalMirror(address(0xDDDD), 1, block.chainid, 5);
 
         // Register in verifier
         uint256 assetId = 55;
@@ -262,7 +262,7 @@ contract AttackScenariosTest is Test {
         // Deploy mirror with compliance enabled
         compliance.setEnforceCompliance(true);
 
-        address mirrorAddr = _deployCanonicalMirror(address(0xEEEE), 1, 42161, 6);
+        address mirrorAddr = _deployCanonicalMirror(address(0xEEEE), 1, block.chainid, 6);
         XythumToken mirror = XythumToken(mirrorAddr);
 
         // Set up authorized minter
@@ -312,7 +312,7 @@ contract AttackScenariosTest is Test {
 
     /// @notice Only factory and registered minters can mint. Random address reverts.
     function test_attack_unauthorized_mint() public {
-        address mirrorAddr = _deployCanonicalMirror(address(0xF1F1), 1, 42161, 7);
+        address mirrorAddr = _deployCanonicalMirror(address(0xF1F1), 1, block.chainid, 7);
         XythumToken mirror = XythumToken(mirrorAddr);
 
         address attacker = makeAddr("minterAttacker");
@@ -343,7 +343,7 @@ contract AttackScenariosTest is Test {
     /// @notice CCIP message from unregistered sender/chain must be rejected.
     function test_attack_ccip_message_from_unauthorized_source() public {
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xA1A1), 1, 42161, 1, THRESHOLD);
+            _buildSignedAttestation(address(0xA1A1), 1, block.chainid, 1, THRESHOLD);
 
         // Unknown chain selector
         uint64 unknownChain = 99999;
@@ -384,7 +384,7 @@ contract AttackScenariosTest is Test {
     /// @notice Submit valid ZK proof, get receipt tokens, try to reuse proof.
     ///         Must revert — nullifier prevents double-spend.
     function test_attack_double_spend_zk_proof() public {
-        address mirrorAddr = _deployCanonicalMirror(address(0xB2B2), 1, 42161, 9);
+        address mirrorAddr = _deployCanonicalMirror(address(0xB2B2), 1, block.chainid, 9);
         uint256 assetId = 99;
         collateralVerifier.registerAsset(mirrorAddr, assetId);
 
@@ -435,7 +435,7 @@ contract AttackScenariosTest is Test {
 
         // Attempt to deploy mirror while paused
         (AttestationLib.Attestation memory att, bytes memory sigs, uint256 bitmap) =
-            _buildSignedAttestation(address(0xC3C3), 1, 42161, 1, THRESHOLD);
+            _buildSignedAttestation(address(0xC3C3), 1, block.chainid, 1, THRESHOLD);
 
         vm.expectRevert(); // EnforcedPause
         factory.deployMirror(att, sigs, bitmap);

@@ -58,3 +58,24 @@ export function getChainName(chainId: number): string {
 export function getChainColor(chainId: number): string {
   return CHAIN_COLORS[chainId] || "bg-gray-500";
 }
+
+// Explorer URLs that actually work for the testnets we use.
+// MonadVision works; testnet.monadexplorer.com also works. Pick MonadVision.
+const EXPLORER_BASE: Record<number, string> = {
+  [avalancheFuji.id]: "https://testnet.snowtrace.io",
+  [bscTestnet.id]: "https://testnet.bscscan.com",
+  [monadTestnet.id]: "https://testnet.monadexplorer.com",
+  [sepolia.id]: "https://sepolia.etherscan.io",
+  [arbitrumSepolia.id]: "https://sepolia.arbiscan.io",
+  [baseSepolia.id]: "https://sepolia.basescan.org",
+};
+
+export function getExplorerUrl(
+  chainId: number,
+  hash: string,
+  kind: "tx" | "address" = "tx",
+): string | undefined {
+  const base = EXPLORER_BASE[chainId];
+  if (!base) return undefined;
+  return `${base}/${kind}/${hash}`;
+}

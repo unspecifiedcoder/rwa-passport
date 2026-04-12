@@ -5,7 +5,11 @@ import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2St
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { ICanonicalFactory } from "../interfaces/ICanonicalFactory.sol";
 import { IAttestationVerifier } from "../interfaces/IAttestationVerifier.sol";
+import { ISignerRegistry } from "../interfaces/ISignerRegistry.sol";
 import { AttestationLib } from "../libraries/AttestationLib.sol";
+import { ReceiptLib } from "../libraries/ReceiptLib.sol";
+import { SignatureLib } from "../libraries/SignatureLib.sol";
+import { AttestationRegistry } from "./AttestationRegistry.sol";
 import { XythumToken } from "./XythumToken.sol";
 
 /// @title CanonicalFactory
@@ -24,6 +28,9 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     error WrongTargetChain(uint256 provided, uint256 expected);
     error OutOfBounds(uint256 offset, uint256 length);
     error FeeTransferFailed();
+    error AlreadyMintedFromLock(bytes32 lockId);
+    error LockReceiptStale(uint256 receiptTimestamp, uint256 maxAge);
+    error LockReceiptInFuture(uint256 receiptTimestamp);
 
     // ─── Structs ─────────────────────────────────────────────────────
     /// @notice Metadata about a deployed canonical mirror
@@ -62,6 +69,13 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     /// @notice All deployed mirror addresses (for enumeration)
     address[] public allMirrors;
 
+    /// @notice One-shot guard: a lockId may be consumed by `mintFromLock` at most once.
+    mapping(bytes32 lockId => bool) public mintedFromLock;
+
+    /// @notice Maximum age of an accepted LockReceipt (seconds).
+    ///         Mirrors AttestationRegistry's staleness model.
+    uint256 public constant LOCK_RECEIPT_MAX_STALENESS = 1 days;
+
     // ─── Events ──────────────────────────────────────────────────────
     /// @notice Emitted when deployment fee is updated
     event DeploymentFeeUpdated(uint256 oldFee, uint256 newFee);
@@ -71,6 +85,18 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
 
     /// @notice Emitted when a mirror is paused/unpaused
     event MirrorActiveStatusChanged(address indexed mirror, bool active);
+
+    /// @notice Emitted when xRWA is minted in response to a LockReceipt.
+    /// @param lockId Identifier of the originating lock on the origin chain
+    /// @param mirror Address of the canonical mirror that received the mint
+    /// @param locker Address that originally locked on the origin chain
+    /// @param amount Mirror tokens minted
+    event MintedFromLock(
+        bytes32 indexed lockId,
+        address indexed mirror,
+        address indexed locker,
+        uint256 amount
+    );
 
     // ─── Constructor ─────────────────────────────────────────────────
     /// @notice Initialize the canonical factory
@@ -97,6 +123,10 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
         bytes calldata signatures,
         uint256 signerBitmap
     ) external payable whenNotPaused returns (address mirror) {
+        // Verify the attestation targets THIS chain (same check as deployMirrorDirect)
+        if (att.targetChainId != block.chainid) {
+            revert WrongTargetChain(att.targetChainId, block.chainid);
+        }
         return _deployMirrorInternal(att, signatures, signerBitmap);
     }
 
@@ -117,6 +147,80 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
         }
 
         return _deployMirrorInternal(att, signatures, signerBitmap);
+    }
+
+    /// @notice Mint xRWA into the canonical mirror for a (origin, src, dst) corridor
+    ///         in response to a 3-of-N signed `LockReceipt`. If no mirror exists yet
+    ///         for this corridor, the factory CREATE2-deploys one in the same call
+    ///         (initial mintCap = receipt.amount). Subsequent locks bump the cap.
+    /// @dev    The receipt is signed by the same SignerRegistry that signs
+    ///         attestations. Domain separator is per-chain so signatures
+    ///         cannot be replayed across chains. `mintedFromLock[lockId]` is the
+    ///         one-shot guard.
+    /// @param receipt The LockReceipt issued by the signer set
+    /// @param signatures Packed 65-byte ECDSA signatures (3-of-N threshold)
+    /// @param signerBitmap Bitmap of which signers signed
+    /// @return mirror The canonical mirror address (auto-deployed if needed)
+    function mintFromLock(
+        ReceiptLib.LockReceipt calldata receipt,
+        bytes calldata signatures,
+        uint256 signerBitmap
+    ) external whenNotPaused returns (address mirror) {
+        // 1. Receipt must target THIS chain.
+        if (receipt.targetChainId != block.chainid) {
+            revert WrongTargetChain(receipt.targetChainId, block.chainid);
+        }
+
+        // 2. Receipt must be fresh and not from the future.
+        if (receipt.timestamp > block.timestamp) {
+            revert LockReceiptInFuture(receipt.timestamp);
+        }
+        if (block.timestamp > receipt.timestamp + LOCK_RECEIPT_MAX_STALENESS) {
+            revert LockReceiptStale(receipt.timestamp, LOCK_RECEIPT_MAX_STALENESS);
+        }
+
+        // 3. One-shot guard.
+        if (mintedFromLock[receipt.lockId]) {
+            revert AlreadyMintedFromLock(receipt.lockId);
+        }
+
+        // 4. Verify 3-of-N threshold signatures over the EIP-712 LockReceipt digest.
+        //    Reuse the same SignerRegistry that AttestationRegistry uses.
+        {
+            ISignerRegistry sr =
+                AttestationRegistry(address(attestationRegistry)).signerRegistry();
+            bytes32 digest = ReceiptLib.toTypedDataHash(
+                receipt, AttestationLib.domainSeparator(block.chainid, address(this))
+            );
+            SignatureLib.verifyThreshold(
+                digest, signatures, signerBitmap, sr.getSignerSet(), sr.getThreshold()
+            );
+        }
+
+        // 5. Resolve (or auto-deploy) the canonical mirror for this corridor.
+        bytes32 salt = keccak256(
+            abi.encode(receipt.originContract, receipt.originChainId, receipt.targetChainId)
+        );
+        mirror = mirrors[salt];
+        if (mirror == address(0)) {
+            mirror = _deployTokenForLock(salt, receipt);
+            _registerMirrorFromLock(salt, mirror, receipt);
+            emit MirrorDeployed(
+                mirror,
+                receipt.originContract,
+                receipt.originChainId,
+                receipt.targetChainId,
+                salt
+            );
+        }
+
+        // 6. Effects.
+        mintedFromLock[receipt.lockId] = true;
+
+        // 7. Mint into the mirror (mintCap is a cumulative high-water mark).
+        XythumToken(mirror).bumpCapAndMint(receipt.locker, receipt.amount, receipt.lockId);
+
+        emit MintedFromLock(receipt.lockId, mirror, receipt.locker, receipt.amount);
     }
 
     /// @inheritdoc ICanonicalFactory
@@ -361,5 +465,54 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     /// @dev TODO(v2): derive symbol from attested metadata
     function _defaultSymbol() internal pure returns (string memory) {
         return "xRWA";
+    }
+
+    /// @notice Deploy a new XythumToken from a LockReceipt with an initial
+    ///         mintCap of zero. The caller's subsequent `bumpCapAndMint` call
+    ///         is what actually grows the cap and mints. This keeps the cap
+    ///         a single-source-of-truth high-water mark rather than splitting
+    ///         it across constructor + bump.
+    function _deployTokenForLock(bytes32 salt, ReceiptLib.LockReceipt calldata receipt)
+        internal
+        returns (address mirror)
+    {
+        bytes memory creationCode = abi.encodePacked(
+            type(XythumToken).creationCode,
+            abi.encode(
+                _defaultName(),
+                _defaultSymbol(),
+                receipt.originContract,
+                receipt.originChainId,
+                complianceContract,
+                uint256(0) // mintCap starts at 0; bumpCapAndMint grows it
+            )
+        );
+
+        assembly {
+            mirror := create2(0, add(creationCode, 0x20), mload(creationCode), salt)
+            if iszero(mirror) { revert(0, 0) }
+        }
+    }
+
+    /// @notice Register a mirror that was deployed via the lock cycle.
+    /// @dev    Same shape as `_registerMirror` but takes a LockReceipt instead of
+    ///         an Attestation. `attestationId` is recorded as the lockId so the
+    ///         on-chain audit trail still points to a unique signed authorization.
+    function _registerMirrorFromLock(
+        bytes32 salt,
+        address mirror,
+        ReceiptLib.LockReceipt calldata receipt
+    ) internal {
+        mirrors[salt] = mirror;
+        isCanonicalMirror[mirror] = true;
+        mirrorInfoMap[mirror] = MirrorInfo({
+            originContract: receipt.originContract,
+            originChainId: receipt.originChainId,
+            targetChainId: receipt.targetChainId,
+            attestationId: receipt.lockId,
+            deployedAt: block.timestamp,
+            active: true
+        });
+        allMirrors.push(mirror);
     }
 }

@@ -72,18 +72,22 @@ contract AaveAdapter is Ownable2Step {
         (uint256 minValue, address asset, uint256 verifiedAt) =
             zkVerifier.getCollateralValue(proofId);
 
-        // 2. Verify proof freshness
+        // 2. Verify proof ownership — only the original prover can use their proof
+        address prover = zkVerifier.getProofProver(proofId);
+        if (prover != msg.sender) revert ProofNotOwner(proofId, msg.sender, prover);
+
+        // 3. Verify proof freshness
         uint256 age = block.timestamp - verifiedAt;
         if (age > maxProofAge) revert ProofTooOld(proofId, age);
 
-        // 3. Verify proof not already used for deposit
+        // 4. Verify proof not already used for deposit
         if (usedProofs[proofId]) revert ProofAlreadyUsed(proofId);
         usedProofs[proofId] = true;
 
-        // 4. Verify asset is a canonical Xythum mirror
+        // 5. Verify asset is a canonical Xythum mirror
         if (!factory.isCanonical(asset)) revert AssetNotCanonical(asset);
 
-        // 5. Mint receipt tokens equal to the proven minimum value
+        // 6. Mint receipt tokens equal to the proven minimum value
         receiptAmount = minValue;
         IXythumToken(receiptToken).mint(msg.sender, receiptAmount);
 

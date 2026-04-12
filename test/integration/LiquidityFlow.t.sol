@@ -53,8 +53,10 @@ contract LiquidityFlowTest is Test, Deployers {
 
     /// @dev Foundry's default tx.origin — needed for compliance whitelisting
     address constant DEFAULT_TX_ORIGIN = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
+    bytes internal DEFAULT_HOOK_DATA;
 
     function setUp() public {
+        DEFAULT_HOOK_DATA = abi.encode(DEFAULT_TX_ORIGIN);
         vm.warp(100_000);
         owner = address(this);
         trader = makeAddr("trader");
@@ -130,7 +132,7 @@ contract LiquidityFlowTest is Test, Deployers {
     /// @notice Full integration: deploy mirror -> bootstrap pool -> add liquidity -> swap
     function test_deploy_and_trade() public {
         // 1. Deploy canonical mirror via factory
-        address mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, 42161, 1);
+        address mirrorAddr = _deployCanonicalMirror(address(0xAAA), 1, block.chainid, 1);
         XythumToken mirror = XythumToken(mirrorAddr);
         assertTrue(factory.isCanonical(mirrorAddr), "Mirror should be canonical");
 
@@ -171,7 +173,7 @@ contract LiquidityFlowTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -200, tickUpper: 200, liquidityDelta: 100e18, salt: bytes32(0)
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
 
         // 7. Trader approves and swaps
@@ -189,7 +191,7 @@ contract LiquidityFlowTest is Test, Deployers {
                 sqrtPriceLimitX96: mirrorAddr < address(usdc) ? MIN_PRICE_LIMIT : MAX_PRICE_LIMIT
             }),
             PoolSwapTest.TestSettings({ takeClaims: false, settleUsingBurn: false }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
         vm.stopPrank();
 
@@ -210,7 +212,7 @@ contract LiquidityFlowTest is Test, Deployers {
     /// @notice Deploy mirror -> pool -> trade at fresh NAV -> age NAV -> trade at stale fee -> update -> fresh again
     function test_stale_nav_increases_cost() public {
         // 1. Deploy mirror + pool
-        address mirrorAddr = _deployCanonicalMirror(address(0xBBB), 1, 42161, 2);
+        address mirrorAddr = _deployCanonicalMirror(address(0xBBB), 1, block.chainid, 2);
         XythumToken mirror = XythumToken(mirrorAddr);
 
         PoolId poolId = bootstrap.createPool(mirrorAddr);
@@ -244,7 +246,7 @@ contract LiquidityFlowTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -200, tickUpper: 200, liquidityDelta: 100e18, salt: bytes32(0)
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
 
         // 4. Trade immediately — NAV is fresh, fee = baseFee (500 = 5 bps)
@@ -252,7 +254,7 @@ contract LiquidityFlowTest is Test, Deployers {
         uint256 age1 = block.timestamp - lastNAV1;
         assertTrue(age1 <= 1 hours, "NAV should be fresh before first trade");
 
-        swap(poolKey, true, -10, ZERO_BYTES);
+        swap(poolKey, true, -10, DEFAULT_HOOK_DATA);
 
         // 5. Warp 12 hours — NAV becomes stale
         vm.warp(block.timestamp + 12 hours);
@@ -262,7 +264,7 @@ contract LiquidityFlowTest is Test, Deployers {
         assertTrue(age2 >= 6 hours, "NAV should be stale after warp");
 
         // Trade still succeeds but at high fee (staleFee = 5000 = 50 bps)
-        swap(poolKey, false, -10, ZERO_BYTES);
+        swap(poolKey, false, -10, DEFAULT_HOOK_DATA);
 
         // 6. Update NAV — resets fee
         hook.updateNAV(poolId);
@@ -271,7 +273,7 @@ contract LiquidityFlowTest is Test, Deployers {
         assertEq(lastNAV3, block.timestamp, "NAV should be refreshed");
 
         // 7. Trade again — fee should be baseFee again
-        swap(poolKey, true, -10, ZERO_BYTES);
+        swap(poolKey, true, -10, DEFAULT_HOOK_DATA);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -280,7 +282,7 @@ contract LiquidityFlowTest is Test, Deployers {
 
     /// @notice Verify LiquidityBootstrap creates a pool with correct configuration
     function test_bootstrap_creates_correct_pool() public {
-        address mirrorAddr = _deployCanonicalMirror(address(0xCCC), 1, 42161, 3);
+        address mirrorAddr = _deployCanonicalMirror(address(0xCCC), 1, block.chainid, 3);
 
         // Create pool
         PoolId poolId = bootstrap.createPool(mirrorAddr);
@@ -320,7 +322,7 @@ contract LiquidityFlowTest is Test, Deployers {
 
     /// @notice LiquidityBootstrap rejects creating a pool for an already-pooled mirror
     function test_bootstrap_rejects_duplicate_pool() public {
-        address mirrorAddr = _deployCanonicalMirror(address(0xDDD), 1, 42161, 4);
+        address mirrorAddr = _deployCanonicalMirror(address(0xDDD), 1, block.chainid, 4);
         bootstrap.createPool(mirrorAddr);
 
         vm.expectRevert(

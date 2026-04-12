@@ -106,7 +106,7 @@ contract CCIPReceiverTest is Test {
     // ─── Deployment Tests ────────────────────────────────────────────
 
     function test_receive_deploy_message_deploys_mirror() public {
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId = keccak256("test_message_1");
 
         Client.Any2EVMMessage memory message = _buildCCIPMessage(messageId, payload);
@@ -119,7 +119,7 @@ contract CCIPReceiverTest is Test {
         assertTrue(ccipReceiver.processedMessages(messageId));
 
         // Verify mirror deployed
-        AttestationLib.Attestation memory att = helper.buildAttestation(address(0xAAA), 1, 42161, 1);
+        AttestationLib.Attestation memory att = helper.buildAttestation(address(0xAAA), 1, block.chainid, 1);
         address predicted = factory.computeMirrorAddress(att);
         assertTrue(factory.isCanonical(predicted), "Mirror should be canonical");
 
@@ -130,7 +130,7 @@ contract CCIPReceiverTest is Test {
     }
 
     function test_receive_deploy_emits_events() public {
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId = keccak256("test_message_events");
 
         Client.Any2EVMMessage memory message = _buildCCIPMessage(messageId, payload);
@@ -147,7 +147,7 @@ contract CCIPReceiverTest is Test {
 
     function test_receive_unauthorized_sender_reverts() public {
         address unauthorizedSender = makeAddr("unauthorized");
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId = keccak256("test_unauth");
 
         Client.Any2EVMMessage memory message = Client.Any2EVMMessage({
@@ -168,7 +168,7 @@ contract CCIPReceiverTest is Test {
     }
 
     function test_receive_wrong_router_reverts() public {
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId = keccak256("test_wrong_router");
         Client.Any2EVMMessage memory message = _buildCCIPMessage(messageId, payload);
 
@@ -182,7 +182,7 @@ contract CCIPReceiverTest is Test {
     // ─── Replay Protection Tests ─────────────────────────────────────
 
     function test_receive_replay_reverts() public {
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId = keccak256("test_replay");
         Client.Any2EVMMessage memory message = _buildCCIPMessage(messageId, payload);
 
@@ -222,7 +222,7 @@ contract CCIPReceiverTest is Test {
 
     function test_receive_deploy_failure_doesnt_revert() public {
         // First deploy succeeds
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId1 = keccak256("test_first_deploy");
         Client.Any2EVMMessage memory message1 = _buildCCIPMessage(messageId1, payload);
 
@@ -232,7 +232,7 @@ contract CCIPReceiverTest is Test {
         // Second deploy for SAME pair — will fail at factory (MirrorAlreadyDeployed)
         // But CCIP message should still process (try/catch)
         vm.warp(block.timestamp + 1 hours + 1); // bypass rate limit
-        bytes memory payload2 = _buildDeployPayload(address(0xAAA), 1, 42161, 2);
+        bytes memory payload2 = _buildDeployPayload(address(0xAAA), 1, block.chainid, 2);
         bytes32 messageId2 = keccak256("test_second_deploy");
         Client.Any2EVMMessage memory message2 = _buildCCIPMessage(messageId2, payload2);
 
@@ -251,7 +251,7 @@ contract CCIPReceiverTest is Test {
     function test_receive_from_wrong_source_chain() public {
         // Sender is allowed on SOURCE_SELECTOR but not on another chain
         uint64 wrongSelector = 999;
-        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, 42161, 1);
+        bytes memory payload = _buildDeployPayload(address(0xAAA), 1, block.chainid, 1);
         bytes32 messageId = keccak256("test_wrong_chain");
 
         Client.Any2EVMMessage memory message = Client.Any2EVMMessage({
