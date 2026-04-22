@@ -1,0 +1,6 @@
+[package]
+name = "collateral_proof"
+type = "bin"
+authors = [""]
+
+[dependencies]
