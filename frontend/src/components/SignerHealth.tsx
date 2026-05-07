@@ -6,40 +6,33 @@ interface SignerHealthProps {
   threshold: number;
 }
 
-export function SignerHealth({
-  activeSigners,
-  totalSigners,
-  threshold,
-}: SignerHealthProps) {
-  const healthPercent = totalSigners > 0 ? (activeSigners / totalSigners) * 100 : 0;
-  const isHealthy = activeSigners >= threshold;
-
+export function SignerHealth({ activeSigners, totalSigners, threshold }: SignerHealthProps) {
+  const pct = totalSigners > 0 ? (activeSigners / totalSigners) * 100 : 0;
+  const healthy = activeSigners >= threshold;
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+    <div className="bg-cover-1 border border-cover-3 bracket-leaf p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-400">Signer Health</h3>
+        <h3 className="font-mono text-[10px] uppercase tracking-stamp text-leaf-2">Signer Health</h3>
         <span
-          className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-            isHealthy
-              ? "bg-green-500/20 text-green-400"
-              : "bg-red-500/20 text-red-400"
+          className={`font-mono text-[9px] uppercase tracking-stamp px-2 py-0.5 border ${
+            healthy
+              ? "border-verde-0/50 text-verde-0 bg-verde-0/10"
+              : "border-wax-0/50 text-wax-0 bg-wax-0/10"
           }`}
         >
-          {isHealthy ? "Healthy" : "Degraded"}
+          {healthy ? "Healthy" : "Degraded"}
         </span>
       </div>
-      <p className="text-2xl font-bold text-white mb-1">
+      <p className="font-mono text-2xl text-ink-page tabular-nums">
         {activeSigners}/{totalSigners}
       </p>
-      <p className="text-xs text-gray-500 mb-3">
-        Threshold: {threshold} signatures required
+      <p className="font-mono text-[9px] uppercase tracking-stamp text-ink-muted mt-1 mb-3">
+        Threshold · {threshold} signatures required
       </p>
-      <div className="w-full bg-gray-800 rounded-full h-2">
+      <div className="w-full h-1.5 bg-cover-2">
         <div
-          className={`h-2 rounded-full transition-all ${
-            isHealthy ? "bg-green-500" : "bg-red-500"
-          }`}
-          style={{ width: `${healthPercent}%` }}
+          className={`h-full transition-all ${healthy ? "bg-verde-0" : "bg-wax-0"}`}
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>
