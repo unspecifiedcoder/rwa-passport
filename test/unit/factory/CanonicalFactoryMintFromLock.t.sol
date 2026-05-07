@@ -43,12 +43,8 @@ contract CanonicalFactoryMintFromLockTest is Test {
         attRegistry = new AttestationRegistry(address(signerRegistry), MAX_STALENESS, RATE_LIMIT);
 
         // Deploy factory (compliance disabled, treasury = self)
-        factory = new CanonicalFactory(
-            address(attRegistry),
-            address(0),
-            address(this),
-            address(this)
-        );
+        factory =
+            new CanonicalFactory(address(attRegistry), address(0), address(this), address(this));
     }
 
     // ─── helpers ─────────────────────────────────────────────────────
@@ -73,16 +69,19 @@ contract CanonicalFactoryMintFromLockTest is Test {
         return AttestationLib.domainSeparator(block.chainid, address(factory));
     }
 
-    function _signWith(
-        ReceiptLib.LockReceipt memory r,
-        uint256[] memory indices
-    ) internal view returns (bytes memory sigs, uint256 bitmap) {
+    function _signWith(ReceiptLib.LockReceipt memory r, uint256[] memory indices)
+        internal
+        view
+        returns (bytes memory sigs, uint256 bitmap)
+    {
         return helper.signLockReceipt(r, _factoryDomainSeparator(), indices);
     }
 
     function _thresholdIndices() internal pure returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) ids[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            ids[i] = i;
+        }
         return ids;
     }
 
@@ -161,9 +160,7 @@ contract CanonicalFactoryMintFromLockTest is Test {
         (bytes memory sigs, uint256 bm) = _signWith(r, _thresholdIndices());
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CanonicalFactory.WrongTargetChain.selector, 999, block.chainid
-            )
+            abi.encodeWithSelector(CanonicalFactory.WrongTargetChain.selector, 999, block.chainid)
         );
         factory.mintFromLock(r, sigs, bm);
     }
@@ -187,9 +184,7 @@ contract CanonicalFactoryMintFromLockTest is Test {
         vm.warp(r.timestamp + 1 days + 1);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                CanonicalFactory.LockReceiptStale.selector, r.timestamp, 1 days
-            )
+            abi.encodeWithSelector(CanonicalFactory.LockReceiptStale.selector, r.timestamp, 1 days)
         );
         factory.mintFromLock(r, sigs, bm);
     }
@@ -201,9 +196,7 @@ contract CanonicalFactoryMintFromLockTest is Test {
         only2[1] = 1;
         (bytes memory sigs, uint256 bm) = _signWith(r, only2);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(SignatureLib.InsufficientSignatures.selector, 2, 3)
-        );
+        vm.expectRevert(abi.encodeWithSelector(SignatureLib.InsufficientSignatures.selector, 2, 3));
         factory.mintFromLock(r, sigs, bm);
     }
 

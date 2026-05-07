@@ -92,10 +92,7 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
     /// @param locker Address that originally locked on the origin chain
     /// @param amount Mirror tokens minted
     event MintedFromLock(
-        bytes32 indexed lockId,
-        address indexed mirror,
-        address indexed locker,
-        uint256 amount
+        bytes32 indexed lockId, address indexed mirror, address indexed locker, uint256 amount
     );
 
     // ─── Constructor ─────────────────────────────────────────────────
@@ -187,8 +184,7 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
         // 4. Verify 3-of-N threshold signatures over the EIP-712 LockReceipt digest.
         //    Reuse the same SignerRegistry that AttestationRegistry uses.
         {
-            ISignerRegistry sr =
-                AttestationRegistry(address(attestationRegistry)).signerRegistry();
+            ISignerRegistry sr = AttestationRegistry(address(attestationRegistry)).signerRegistry();
             bytes32 digest = ReceiptLib.toTypedDataHash(
                 receipt, AttestationLib.domainSeparator(block.chainid, address(this))
             );
@@ -206,11 +202,7 @@ contract CanonicalFactory is ICanonicalFactory, Ownable2Step, Pausable {
             mirror = _deployTokenForLock(salt, receipt);
             _registerMirrorFromLock(salt, mirror, receipt);
             emit MirrorDeployed(
-                mirror,
-                receipt.originContract,
-                receipt.originChainId,
-                receipt.targetChainId,
-                salt
+                mirror, receipt.originContract, receipt.originChainId, receipt.targetChainId, salt
             );
         }
 

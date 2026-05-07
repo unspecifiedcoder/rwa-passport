@@ -70,11 +70,7 @@ contract MultiChainRegistry is IMultiChainRegistry, Ownable2Step {
             supportedChainIds.push(chainId);
         }
 
-        chainInfos[chainId] = ChainInfo({
-            name: name,
-            active: true,
-            registeredAt: block.timestamp
-        });
+        chainInfos[chainId] = ChainInfo({ name: name, active: true, registeredAt: block.timestamp });
 
         emit ChainAdded(chainId, name);
     }

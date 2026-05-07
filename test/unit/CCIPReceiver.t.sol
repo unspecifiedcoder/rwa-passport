@@ -119,7 +119,8 @@ contract CCIPReceiverTest is Test {
         assertTrue(ccipReceiver.processedMessages(messageId));
 
         // Verify mirror deployed
-        AttestationLib.Attestation memory att = helper.buildAttestation(address(0xAAA), 1, block.chainid, 1);
+        AttestationLib.Attestation memory att =
+            helper.buildAttestation(address(0xAAA), 1, block.chainid, 1);
         address predicted = factory.computeMirrorAddress(att);
         assertTrue(factory.isCanonical(predicted), "Mirror should be canonical");
 

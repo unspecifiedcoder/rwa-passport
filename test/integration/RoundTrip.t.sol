@@ -93,7 +93,9 @@ contract RoundTripTest is Test {
 
     function _thresholdIndices() internal pure returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) ids[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            ids[i] = i;
+        }
         return ids;
     }
 
@@ -109,7 +111,7 @@ contract RoundTripTest is Test {
 
         assertEq(rwa.balanceOf(user), userOriginBefore - amount);
         assertEq(rwa.balanceOf(address(escrow)), amount);
-        (, , uint256 lockedAmt, , bool released) = escrow.lockState(lockId);
+        (,, uint256 lockedAmt,, bool released) = escrow.lockState(lockId);
         assertEq(lockedAmt, amount);
         assertFalse(released);
 
@@ -127,8 +129,7 @@ contract RoundTripTest is Test {
             timestamp: block.timestamp
         });
 
-        bytes32 targetDomainSep =
-            AttestationLib.domainSeparator(TARGET_CHAIN, address(factory));
+        bytes32 targetDomainSep = AttestationLib.domainSeparator(TARGET_CHAIN, address(factory));
         (bytes memory lockSigs, uint256 lockBitmap) =
             helper.signLockReceipt(lockReceipt, targetDomainSep, _thresholdIndices());
 
@@ -149,33 +150,32 @@ contract RoundTripTest is Test {
         assertEq(token.balanceOf(user), 0);
         assertTrue(token.burnedForLock(lockId));
 
-        // ─── 6. Signers sign the UnlockReceipt with verifyingContract = escrow-on-origin
+        // ─── 6-7. Unlock on origin chain (scoped to reduce stack depth)
         vm.chainId(ORIGIN_CHAIN);
+        {
+            ReceiptLib.UnlockReceipt memory unlockReceipt = ReceiptLib.UnlockReceipt({
+                originContract: address(rwa),
+                originChainId: ORIGIN_CHAIN,
+                targetChainId: TARGET_CHAIN,
+                recipient: user,
+                amount: amount,
+                lockId: lockId,
+                burnTxBlock: block.number,
+                timestamp: block.timestamp
+            });
 
-        ReceiptLib.UnlockReceipt memory unlockReceipt = ReceiptLib.UnlockReceipt({
-            originContract: address(rwa),
-            originChainId: ORIGIN_CHAIN,
-            targetChainId: TARGET_CHAIN,
-            recipient: user,
-            amount: amount,
-            lockId: lockId,
-            burnTxBlock: block.number, // best-effort audit value
-            timestamp: block.timestamp
-        });
+            bytes32 originDomainSep = AttestationLib.domainSeparator(ORIGIN_CHAIN, address(escrow));
+            (bytes memory unlockSigs, uint256 unlockBitmap) =
+                helper.signUnlockReceipt(unlockReceipt, originDomainSep, _thresholdIndices());
 
-        bytes32 originDomainSep =
-            AttestationLib.domainSeparator(ORIGIN_CHAIN, address(escrow));
-        (bytes memory unlockSigs, uint256 unlockBitmap) =
-            helper.signUnlockReceipt(unlockReceipt, originDomainSep, _thresholdIndices());
+            escrow.release(unlockReceipt, unlockSigs, unlockBitmap);
+        }
 
-        // ─── 7. release — escrow returns the original mTBILL ──────────
-        escrow.release(unlockReceipt, unlockSigs, unlockBitmap);
-
-        assertEq(rwa.balanceOf(user), userOriginBefore); // back to original balance
+        assertEq(rwa.balanceOf(user), userOriginBefore);
         assertEq(rwa.balanceOf(address(escrow)), 0);
         assertEq(escrow.totalLocked(address(rwa)), 0);
 
-        (, , , , released) = escrow.lockState(lockId);
+        (,,,, released) = escrow.lockState(lockId);
         assertTrue(released);
 
         // Mirror's mintCap stays as a high-water mark even after release.
@@ -238,8 +238,7 @@ contract RoundTripTest is Test {
         bytes32 id = escrow.lock(address(rwa), 10 ether, TARGET_CHAIN);
 
         // Build & sign a forged unlock receipt with wrong amount
-        bytes32 dsep =
-            AttestationLib.domainSeparator(ORIGIN_CHAIN, address(escrow));
+        bytes32 dsep = AttestationLib.domainSeparator(ORIGIN_CHAIN, address(escrow));
         ReceiptLib.UnlockReceipt memory r = ReceiptLib.UnlockReceipt({
             originContract: address(rwa),
             originChainId: ORIGIN_CHAIN,

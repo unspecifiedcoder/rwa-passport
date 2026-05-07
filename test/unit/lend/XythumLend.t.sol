@@ -112,9 +112,7 @@ contract XythumLendTest is Test {
         // debtBps = 701_000_000 * 10_000 / 1_000_000_000 = 7010 > 7000 → breach.
         // (Adding +1 wei to a 700 USDC borrow does NOT breach because BPS math
         //  truncates: 700_000_001 * 10000 / 1e9 = 7000.)
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumLend.LtvBreached.selector, 7010, LTV_BPS)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumLend.LtvBreached.selector, 7010, LTV_BPS));
         lend.borrow(701 * 1e6);
         vm.stopPrank();
     }
@@ -129,9 +127,7 @@ contract XythumLendTest is Test {
         collat.approve(address(freshLend), type(uint256).max);
         freshLend.supply(1000 ether);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(XythumLend.InsufficientReserves.selector, 1, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(XythumLend.InsufficientReserves.selector, 1, 0));
         freshLend.borrow(1);
         vm.stopPrank();
     }
@@ -231,9 +227,7 @@ contract XythumLendTest is Test {
 
     function test_only_owner_seedReserves() public {
         vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         lend.seedReserves(100);
     }
 

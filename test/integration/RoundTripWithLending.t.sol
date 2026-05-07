@@ -81,8 +81,7 @@ contract RoundTripWithLendingTest is Test {
         for (uint256 i = 0; i < SIGNER_COUNT; i++) {
             srTarget.registerSigner(helper.getSignerAddress(i));
         }
-        attRegTarget =
-            new AttestationRegistry(address(srTarget), MAX_STALENESS, RATE_LIMIT);
+        attRegTarget = new AttestationRegistry(address(srTarget), MAX_STALENESS, RATE_LIMIT);
         factory = new CanonicalFactory(
             address(attRegTarget),
             address(0), // no compliance for round-trip
@@ -99,7 +98,9 @@ contract RoundTripWithLendingTest is Test {
 
     function _thresholdIndices() internal pure returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) ids[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            ids[i] = i;
+        }
         return ids;
     }
 
@@ -201,9 +202,8 @@ contract RoundTripWithLendingTest is Test {
             timestamp: block.timestamp
         });
         bytes32 originDsep = AttestationLib.domainSeparator(ORIGIN_CHAIN, address(escrow));
-        (bytes memory unlockSigs, uint256 unlockBitmap) = helper.signUnlockReceipt(
-            unlockReceipt, originDsep, _thresholdIndices()
-        );
+        (bytes memory unlockSigs, uint256 unlockBitmap) =
+            helper.signUnlockReceipt(unlockReceipt, originDsep, _thresholdIndices());
 
         // ─── 9. release — alice gets her 100k mTBILL back ─────────────
         escrow.release(unlockReceipt, unlockSigs, unlockBitmap);

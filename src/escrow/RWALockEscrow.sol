@@ -97,9 +97,7 @@ contract RWALockEscrow is IRWALockEscrow, Ownable2Step, Pausable, ReentrancyGuar
         if (targetChainId == block.chainid) revert TargetIsThisChain();
 
         uint256 nonce = lockNonce++;
-        lockId = keccak256(
-            abi.encode(address(this), msg.sender, rwaToken, amount, nonce)
-        );
+        lockId = keccak256(abi.encode(address(this), msg.sender, rwaToken, amount, nonce));
 
         _locks[lockId] = LockState({
             rwaToken: rwaToken,
@@ -153,11 +151,7 @@ contract RWALockEscrow is IRWALockEscrow, Ownable2Step, Pausable, ReentrancyGuar
         bytes32 digest = ReceiptLib.toTypedDataHash(receipt, DOMAIN_SEPARATOR);
         ISignerRegistry sr = ISignerRegistry(signerRegistry);
         SignatureLib.verifyThreshold(
-            digest,
-            signatures,
-            signerBitmap,
-            sr.getSignerSet(),
-            sr.getThreshold()
+            digest, signatures, signerBitmap, sr.getSignerSet(), sr.getThreshold()
         );
 
         // Effects.
@@ -177,13 +171,7 @@ contract RWALockEscrow is IRWALockEscrow, Ownable2Step, Pausable, ReentrancyGuar
         external
         view
         override
-        returns (
-            address rwaToken,
-            address locker,
-            uint256 amount,
-            uint256 lockedAt,
-            bool released
-        )
+        returns (address rwaToken, address locker, uint256 amount, uint256 lockedAt, bool released)
     {
         LockState storage L = _locks[lockId];
         return (L.rwaToken, L.locker, L.amount, L.lockedAt, L.released);

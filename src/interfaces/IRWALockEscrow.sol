@@ -64,11 +64,5 @@ interface IRWALockEscrow {
     function lockState(bytes32 lockId)
         external
         view
-        returns (
-            address rwaToken,
-            address locker,
-            uint256 amount,
-            uint256 lockedAt,
-            bool released
-        );
+        returns (address rwaToken, address locker, uint256 amount, uint256 lockedAt, bool released);
 }

@@ -295,8 +295,8 @@ contract StakingModule is IStakingModule, Ownable2Step, ReentrancyGuard, Pausabl
 
         if (user != address(0)) {
             StakeInfo storage info = stakes[user];
-            info.pendingReward +=
-                (info.weightedAmount * (rewardPerTokenStored - info.rewardDebt)) / PRECISION;
+            info.pendingReward += (info.weightedAmount * (rewardPerTokenStored - info.rewardDebt))
+                / PRECISION;
             info.rewardDebt = rewardPerTokenStored;
         }
     }

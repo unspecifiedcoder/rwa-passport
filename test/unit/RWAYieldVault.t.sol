@@ -24,12 +24,7 @@ contract RWAYieldVaultTest is Test {
         vm.startPrank(owner);
         token = new ProtocolToken(owner, INITIAL_MINT, treasury);
         vault = new RWAYieldVault(
-            address(token),
-            "Xythum RWA Vault",
-            "xVault",
-            owner,
-            feeRecipient,
-            DEPOSIT_CAP
+            address(token), "Xythum RWA Vault", "xVault", owner, feeRecipient, DEPOSIT_CAP
         );
         vault.setYieldSource(yieldSource, true);
         vm.stopPrank();

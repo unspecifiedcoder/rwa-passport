@@ -66,7 +66,9 @@ contract ReceiptHelper is Test {
 
     function _sortIndices(uint256[] memory arr) internal pure returns (uint256[] memory) {
         uint256[] memory sorted = new uint256[](arr.length);
-        for (uint256 i = 0; i < arr.length; i++) sorted[i] = arr[i];
+        for (uint256 i = 0; i < arr.length; i++) {
+            sorted[i] = arr[i];
+        }
         for (uint256 i = 1; i < sorted.length; i++) {
             uint256 key = sorted[i];
             uint256 j = i;

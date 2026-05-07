@@ -13,7 +13,7 @@ contract MockUSDC is ERC20, Ownable2Step {
     /// @notice Amount minted per `faucet()` call (10k USDC, 6-decimal precision).
     uint256 public constant FAUCET_AMOUNT = 10_000 * 1e6;
 
-    constructor(address initialOwner) ERC20("Mock USDC", "USDC") Ownable(initialOwner) {}
+    constructor(address initialOwner) ERC20("Mock USDC", "USDC") Ownable(initialOwner) { }
 
     /// @inheritdoc ERC20
     function decimals() public pure override returns (uint8) {

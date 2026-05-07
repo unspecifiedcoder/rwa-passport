@@ -119,10 +119,8 @@ contract EmergencyGuardian is IEmergencyGuardian {
         // Governance can always deactivate
         // Anyone can deactivate if MAX_EMERGENCY_DURATION has passed (auto-timeout)
         if (msg.sender != governance) {
-            if (
-                !emergencyActive
-                    || block.timestamp < emergencyActivatedAt + MAX_EMERGENCY_DURATION
-            ) {
+            if (!emergencyActive || block.timestamp < emergencyActivatedAt + MAX_EMERGENCY_DURATION)
+            {
                 revert OnlyGovernance();
             }
         }

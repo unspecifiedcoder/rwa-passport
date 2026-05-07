@@ -131,7 +131,13 @@ contract XythumToken is ERC20, IXythumToken {
     /// @param to Recipient of the freshly minted xRWA
     /// @param amount Amount to mint AND amount to add to mintCap
     /// @param /* lockId */ Optional context (passed through for indexers; not stored)
-    function bumpCapAndMint(address to, uint256 amount, bytes32 /* lockId */) external {
+    function bumpCapAndMint(
+        address to,
+        uint256 amount,
+        bytes32 /* lockId */
+    )
+        external
+    {
         if (!authorizedMinters[msg.sender]) revert Unauthorized(msg.sender);
         if (to == address(0)) revert ZeroAddress();
         // Cumulative high-water mark: cap can only grow.

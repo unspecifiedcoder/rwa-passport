@@ -244,11 +244,7 @@ contract ProtocolToken is ERC20, ERC20Permit, ERC20Votes, Ownable2Step {
     // ─── Internal ────────────────────────────────────────────────────
 
     /// @notice Compute releasable amount for a vesting schedule
-    function _computeReleasable(VestingSchedule storage schedule)
-        internal
-        view
-        returns (uint256)
-    {
+    function _computeReleasable(VestingSchedule storage schedule) internal view returns (uint256) {
         if (block.timestamp < schedule.cliffEnd) return 0;
 
         uint256 vested;

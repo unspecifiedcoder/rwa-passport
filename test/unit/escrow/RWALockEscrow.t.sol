@@ -48,7 +48,9 @@ contract RWALockEscrowTest is Test {
 
     function _thresholdIndices() internal pure returns (uint256[] memory) {
         uint256[] memory ids = new uint256[](THRESHOLD);
-        for (uint256 i = 0; i < THRESHOLD; i++) ids[i] = i;
+        for (uint256 i = 0; i < THRESHOLD; i++) {
+            ids[i] = i;
+        }
         return ids;
     }
 
@@ -145,7 +147,7 @@ contract RWALockEscrowTest is Test {
 
         assertEq(rwa.balanceOf(user), userBefore + amt);
         assertEq(escrow.totalLocked(address(rwa)), 0);
-        (, , , , bool released) = escrow.lockState(lockId);
+        (,,,, bool released) = escrow.lockState(lockId);
         assertTrue(released);
     }
 
@@ -160,8 +162,7 @@ contract RWALockEscrowTest is Test {
         // Re-sign with a fresh timestamp to dodge staleness; the LockAlreadyReleased
         // check should still fire first.
         r.timestamp = block.timestamp;
-        (sigs, bitmap) =
-            helper.signUnlockReceipt(r, escrow.DOMAIN_SEPARATOR(), _thresholdIndices());
+        (sigs, bitmap) = helper.signUnlockReceipt(r, escrow.DOMAIN_SEPARATOR(), _thresholdIndices());
 
         vm.expectRevert(abi.encodeWithSelector(RWALockEscrow.LockAlreadyReleased.selector, lockId));
         escrow.release(r, sigs, bitmap);
@@ -243,9 +244,7 @@ contract RWALockEscrowTest is Test {
         (bytes memory sigs, uint256 bitmap) =
             helper.signUnlockReceipt(r, escrow.DOMAIN_SEPARATOR(), only2);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(SignatureLib.InsufficientSignatures.selector, 2, 3)
-        );
+        vm.expectRevert(abi.encodeWithSelector(SignatureLib.InsufficientSignatures.selector, 2, 3));
         escrow.release(r, sigs, bitmap);
     }
 

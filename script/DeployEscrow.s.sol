@@ -70,12 +70,8 @@ contract DeployEscrowScript is Script {
         // domains still differ via chainId — so this is "informational"
         // rather than a hard failure. We warn loudly so operators audit it.
         console.log("[Replay-domain check]");
-        console.log(
-            "  EIP-712 domain pins chainId AND verifyingContract."
-        );
-        console.log(
-            "  Verify on a block explorer that NO contract at this same"
-        );
+        console.log("  EIP-712 domain pins chainId AND verifyingContract.");
+        console.log("  Verify on a block explorer that NO contract at this same");
         console.log("  address on any OTHER chain is a Xythum escrow.");
         console.log("  If it is, do NOT proceed.  Use a different deployer");
         console.log("  EOA or nonce to land at a different address.");

@@ -73,8 +73,7 @@ contract ComplianceEngineTest is Test {
             uint256(IComplianceEngine.InvestorTier.ACCREDITED)
         );
         assertEq(
-            uint256(compliance.getInvestorTier(bob)),
-            uint256(IComplianceEngine.InvestorTier.RETAIL)
+            uint256(compliance.getInvestorTier(bob)), uint256(IComplianceEngine.InvestorTier.RETAIL)
         );
         assertEq(
             uint256(compliance.getInvestorTier(charlie)),
@@ -116,9 +115,7 @@ contract ComplianceEngineTest is Test {
         compliance.blacklist(alice, keccak256("sanctions"));
 
         vm.prank(provider);
-        vm.expectRevert(
-            abi.encodeWithSelector(ComplianceEngine.AlreadyBlacklisted.selector, alice)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ComplianceEngine.AlreadyBlacklisted.selector, alice));
         compliance.blacklist(alice, keccak256("sanctions_again"));
     }
 

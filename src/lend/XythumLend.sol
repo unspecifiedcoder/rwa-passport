@@ -200,8 +200,7 @@ contract XythumLend is Ownable2Step, Pausable, ReentrancyGuard {
         if (p.debt == 0) return p.collateral;
 
         // minRequiredCollateral18 = debt6 * 1e18 * BPS_DENOM / (LTV_BPS * ORACLE_PRICE_E6)
-        uint256 minRequiredCollateral18 =
-            (p.debt * 1e18 * BPS_DENOM) / (LTV_BPS * ORACLE_PRICE_E6);
+        uint256 minRequiredCollateral18 = (p.debt * 1e18 * BPS_DENOM) / (LTV_BPS * ORACLE_PRICE_E6);
         if (minRequiredCollateral18 >= p.collateral) return 0;
         return p.collateral - minRequiredCollateral18;
     }
