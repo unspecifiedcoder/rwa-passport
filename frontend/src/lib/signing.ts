@@ -160,3 +160,104 @@ export function buildPayload(
 
   return payload;
 }
+
+// ─── LockReceipt + UnlockReceipt EIP-712 signing (round-trip flow) ───
+// Same 5 demo signer keys, same 3-of-N threshold, same EIP-712 domain
+// (only chainId + verifyingContract differ per receipt type).
+
+export interface LockReceipt {
+  originContract: `0x${string}`;
+  originChainId: bigint;
+  targetChainId: bigint;
+  locker: `0x${string}`;
+  amount: bigint;
+  lockId: `0x${string}`;
+  timestamp: bigint;
+}
+
+export interface UnlockReceipt {
+  originContract: `0x${string}`;
+  originChainId: bigint;
+  targetChainId: bigint;
+  recipient: `0x${string}`;
+  amount: bigint;
+  lockId: `0x${string}`;
+  burnTxBlock: bigint;
+  timestamp: bigint;
+}
+
+const LOCK_RECEIPT_TYPES = {
+  LockReceipt: [
+    { name: "originContract", type: "address" },
+    { name: "originChainId", type: "uint256" },
+    { name: "targetChainId", type: "uint256" },
+    { name: "locker", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "lockId", type: "bytes32" },
+    { name: "timestamp", type: "uint256" },
+  ],
+} as const;
+
+const UNLOCK_RECEIPT_TYPES = {
+  UnlockReceipt: [
+    { name: "originContract", type: "address" },
+    { name: "originChainId", type: "uint256" },
+    { name: "targetChainId", type: "uint256" },
+    { name: "recipient", type: "address" },
+    { name: "amount", type: "uint256" },
+    { name: "lockId", type: "bytes32" },
+    { name: "burnTxBlock", type: "uint256" },
+    { name: "timestamp", type: "uint256" },
+  ],
+} as const;
+
+async function signWithDemoKeys(
+  domain: { name: string; version: string; chainId: number; verifyingContract: `0x${string}` },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  types: any,
+  primaryType: string,
+  message: Record<string, unknown>,
+  signerIndices: number[] = [0, 1, 2],
+): Promise<{ signatures: `0x${string}`; signerBitmap: bigint }> {
+  let packed: `0x${string}` = "0x";
+  let bitmap = BigInt(0);
+  for (const i of signerIndices) {
+    const account = privateKeyToAccount(SIGNER_KEYS[i]);
+    const sig = await account.signTypedData({ domain, types, primaryType, message });
+    packed = packed === "0x"
+      ? sig
+      : (encodePacked(["bytes", "bytes"], [packed, sig]) as `0x${string}`);
+    bitmap |= BigInt(1) << BigInt(i);
+  }
+  return { signatures: packed, signerBitmap: bitmap };
+}
+
+export async function signLockReceipt(
+  receipt: LockReceipt,
+  targetChainId: number,
+  factoryAddress: `0x${string}`,
+  signerIndices: number[] = [0, 1, 2],
+): Promise<{ signatures: `0x${string}`; signerBitmap: bigint }> {
+  return signWithDemoKeys(
+    { ...EIP712_DOMAIN, chainId: targetChainId, verifyingContract: factoryAddress },
+    LOCK_RECEIPT_TYPES,
+    "LockReceipt",
+    receipt as unknown as Record<string, unknown>,
+    signerIndices,
+  );
+}
+
+export async function signUnlockReceipt(
+  receipt: UnlockReceipt,
+  originChainId: number,
+  escrowAddress: `0x${string}`,
+  signerIndices: number[] = [0, 1, 2],
+): Promise<{ signatures: `0x${string}`; signerBitmap: bigint }> {
+  return signWithDemoKeys(
+    { ...EIP712_DOMAIN, chainId: originChainId, verifyingContract: escrowAddress },
+    UNLOCK_RECEIPT_TYPES,
+    "UnlockReceipt",
+    receipt as unknown as Record<string, unknown>,
+    signerIndices,
+  );
+}
