@@ -40,13 +40,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Run unit tests
-        run: forge test --match-path "test/unit/*" -vvv --gas-report | tee gas-report.txt
-
-      - name: Upload gas report
-        uses: actions/upload-artifact@v4
-        with:
-          name: gas-report
-          path: gas-report.txt
+        run: forge test --match-path "test/unit/*" -vvv
 
   # ── Stage 3: Integration Tests ──────────────────────────────────
   integration-tests:
