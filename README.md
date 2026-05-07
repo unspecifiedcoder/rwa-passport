@@ -129,7 +129,6 @@ npm run dev      # http://localhost:3000
 |---|---|
 | **Dashboard** (`/`) | Protocol stats, signer health on both chains, deployed contract addresses, architecture diagram |
 | **Attest** (`/attest`) | Full cross-chain workflow: deploy origin RWA -> sign 3/5 attestation -> deploy mirror (direct or CCIP) |
-| **Lock** (`/lock`) | Full lock-mint-burn-unlock round-trip: lock RWA on origin -> mint xRWA on target -> use in DeFi -> burn -> redeem original |
 | **Mirrors** (`/mirrors`) | Browse deployed canonical mirror tokens with on-chain metadata |
 | **Verify** (`/verify`) | Paste any address to check `isCanonical()` on BNB Testnet or Avalanche Fuji |
 
@@ -263,45 +262,6 @@ The mirror token is a standard ERC-20 with:
 - **Attack tests**: Replay, front-running, signer collusion, flash loan, grief scenarios
 - **Pause/emergency**: Owner can pause tokens and factory
 
-### Trust Model (read this if you're considering using the protocol)
-
-The protocol's security ultimately reduces to **the 3-of-5 ECDSA signer set** registered in `SignerRegistry`. Mirrors are deployed and locks are released against threshold-signed receipts produced by this set off-chain. This is the same trust model as wBTC's BitGo custodian — a known multi-party authority, not trustless cryptography.
-
-**What "honest signers" guarantees you:**
-- One canonical mirror per `(origin, srcChain, dstChain)` triple
-- Mirror supply is bounded by escrowed origin supply (`mintCap` is a cumulative high-water mark)
-- Replay across chains is impossible (EIP-712 domain pins `chainId` + `verifyingContract`)
-- Replay across receipts is impossible (one-shot `lockId` mappings on all three contracts)
-
-**Failure modes you must accept in v1:**
-
-| Scenario | What happens | Recovery |
-|---|---|---|
-| All 3+ signers go **offline** | Locked RWAs are **temporarily stuck**. No fund loss. | Manual intervention by signer ops, or wait for them to come back. v2: 24h self-rescue (`cancelLock`). |
-| 3+ signers **collude maliciously** | Mirrors can be **minted without backing**, draining the target chain. **This is the core trust assumption.** | Same as wBTC. v2: signer bonding + slashing + guardian-multisig pause. v3: replace signers with ZK proofs. |
-| Signers sign correctly, user **never submits** the receipt | LockReceipt expires after `LOCK_RECEIPT_MAX_STALENESS` (1 day) | User asks signers to re-issue. |
-| Burn succeeds on target → signers don't sign UnlockReceipt | Mirror burned, **original RWA stuck in escrow** until signers act | v2: Merkle-proof of the `BurnedForLock` event from target → trustless `release` after timeout. v1: signers must intervene. |
-| Anyone front-runs a LockReceipt to call `mintFromLock` first | The receipt names `locker` as recipient, so the front-runner pays gas but the locker still receives the mirror. **Useless attack.** | None needed. |
-
-**Source-of-truth hierarchy** (when state across contracts disagrees):
-
-1. `RWALockEscrow.locks[lockId]` — the only ground truth for "what is escrowed"
-2. `XythumToken.burnedForLock[lockId]` — ground truth for "did the burn happen"
-3. `CanonicalFactory.mintedFromLock[lockId]` — derivative; minting requires (1)
-4. Off-chain signer attestations — **authorize actions, but never decide truth.** Signers must read (1) and (2) before signing.
-
-**Worst-case attack surface (ranked by severity):**
-
-| # | Attack | Status |
-|---|---|---|
-| 1 | Signer collusion (3-of-5 sign a fake LockReceipt) | **OPEN — core v1 trust assumption.** Mitigation in v2 (bonding + slashing + guardian pause). |
-| 2 | Replay LockReceipt across chains | **CLOSED.** EIP-712 domain pins chainId + verifyingContract. Sigs valid for one factory only. |
-| 3 | Burn-amount mismatch | **CLOSED.** Escrow re-checks `locks[id].amount == receipt.amount` on release. |
-| 4 | Front-run a signed receipt | **CLOSED.** Receipts name `locker`/`recipient`; griefer just pays gas. |
-| 5 | Signer software trusts a single RPC for lock-event existence | **OPEN — operational.** Production signer stack must read from N independent RPCs and require quorum before signing. Out of scope for contract layer. |
-
-If any of these change your mind about deploying, see the v2 plan in [`docs/V2_ROADMAP.md`](docs/V2_ROADMAP.md).
-
 See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) for the full threat model.
 
 ## Documentation
@@ -312,7 +272,6 @@ See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) for the full threat model.
 | [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) | Threat model and mitigation strategies |
 | [`docs/INTEGRATION_GUIDE.md`](docs/INTEGRATION_GUIDE.md) | Integration guide for downstream protocols |
 | [`docs/RWA_MOVEMENT_FLOW.md`](docs/RWA_MOVEMENT_FLOW.md) | Complete RWA movement flow (12 sections) |
-| [`docs/V2_ROADMAP.md`](docs/V2_ROADMAP.md) | v2 plan: self-rescue, trustless burn-attestation, signer bonding, ZK migration |
 | [`security/gas-report.txt`](security/gas-report.txt) | Gas usage report |
 
 ## Project Structure

@@ -32,7 +32,3 @@ src/zk/build/*_js/
 # IDE
 .vscode/
 .idea/
-
-# Pitch artifacts
-pitchdeck.js
-*.pptx
