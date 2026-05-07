@@ -16,24 +16,31 @@ export function ConnectButton() {
     setMounted(true);
   }, []);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowOptions(false);
       }
     }
     if (showOptions) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [showOptions]);
 
-  const baseBtn =
-    "px-4 py-2 font-mono text-[10px] uppercase tracking-stamp font-semibold transition-all border";
-
+  // Render a placeholder with the same structure on server and first client render
+  // to avoid hydration mismatch
   if (!mounted) {
     return (
-      <button className={`${baseBtn} bg-leaf-0 text-cover-0 border-leaf-2`} disabled>
+      <button
+        className="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 rounded-md transition-colors"
+        disabled
+      >
         Connect Wallet
       </button>
     );
@@ -42,12 +49,12 @@ export function ConnectButton() {
   if (isConnected && address) {
     return (
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[11px] text-ink-page tracking-tight">
-          <span className="text-leaf-1">⌬</span> {truncateAddress(address)}
+        <span className="text-sm text-gray-400 font-mono">
+          {truncateAddress(address)}
         </span>
         <button
           onClick={() => disconnect()}
-          className={`${baseBtn} bg-transparent text-ink-muted border-cover-3 hover:border-wax-0 hover:text-wax-0`}
+          className="px-3 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 rounded-md transition-colors"
         >
           Disconnect
         </button>
@@ -55,6 +62,8 @@ export function ConnectButton() {
     );
   }
 
+  // Deduplicate connectors by name — browser extensions can register multiple
+  // providers with the same name (e.g. two "Injected" entries)
   const seen = new Set<string>();
   const uniqueConnectors = connectors.filter((c) => {
     const key = c.name;
@@ -67,15 +76,15 @@ export function ConnectButton() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setShowOptions(!showOptions)}
-        className={`${baseBtn} bg-leaf-0 text-cover-0 border-leaf-2 hover:shadow-[0_0_0_2px_rgba(232,201,119,0.25)]`}
+        className="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-700 rounded-md transition-colors"
       >
         Connect Wallet
       </button>
 
       {showOptions && (
-        <div className="absolute right-0 mt-2 bg-cover-1 border border-cover-3 bracket-leaf min-w-[240px] z-50 p-2">
-          <p className="px-3 py-1.5 font-mono text-[9px] uppercase tracking-stamp text-leaf-2">
-            §  Select Wallet
+        <div className="absolute right-0 mt-2 bg-gray-900 border border-gray-700 rounded-xl shadow-xl p-1.5 min-w-[220px] z-50">
+          <p className="px-3 py-1.5 text-xs text-gray-500 font-medium uppercase tracking-wide">
+            Select Wallet
           </p>
           {uniqueConnectors.map((connector) => (
             <button
@@ -84,14 +93,14 @@ export function ConnectButton() {
                 connect({ connector });
                 setShowOptions(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 font-mono text-[11px] text-ink-page hover:bg-cover-2 hover:text-leaf-0 transition-colors text-left"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-200 hover:bg-gray-800 rounded-lg transition-colors text-left"
             >
               <WalletIcon name={connector.name} />
               <span>{connector.name}</span>
             </button>
           ))}
           {uniqueConnectors.length === 0 && (
-            <p className="px-3 py-2.5 font-mono text-[10px] text-ink-faint">
+            <p className="px-3 py-2.5 text-sm text-gray-500">
               No wallets detected. Install MetaMask or another browser wallet.
             </p>
           )}
@@ -101,26 +110,33 @@ export function ConnectButton() {
   );
 }
 
+/** Simple icon resolver — shows a colored dot per known wallet, fallback for unknown */
 function WalletIcon({ name }: { name: string }) {
   const lower = name.toLowerCase();
-  let bg = "bg-cover-3";
+
+  let color = "bg-gray-500";
   let label = name.charAt(0).toUpperCase();
+
   if (lower.includes("metamask")) {
-    bg = "bg-wax-0";
+    color = "bg-orange-500";
     label = "M";
   } else if (lower.includes("core")) {
-    bg = "bg-leaf-1";
+    color = "bg-blue-500";
     label = "C";
   } else if (lower.includes("coinbase")) {
-    bg = "bg-leaf-0 text-cover-0";
+    color = "bg-blue-600";
     label = "CB";
+  } else if (lower.includes("brave")) {
+    color = "bg-orange-600";
+    label = "B";
   } else if (lower.includes("walletconnect")) {
-    bg = "bg-verde-1";
+    color = "bg-indigo-500";
     label = "W";
   }
+
   return (
     <span
-      className={`inline-flex items-center justify-center w-7 h-7 font-mono font-bold text-[10px] text-parchment-0 ${bg}`}
+      className={`inline-flex items-center justify-center w-7 h-7 rounded-md text-xs font-bold text-white ${color}`}
     >
       {label}
     </span>
