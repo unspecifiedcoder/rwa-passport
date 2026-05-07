@@ -28,7 +28,7 @@ jobs:
         id: fmt
 
       - name: Run Forge build
-        run: forge build --sizes
+        run: forge build
         id: build
 
       - name: Run Forge tests

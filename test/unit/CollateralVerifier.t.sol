@@ -188,12 +188,10 @@ contract CollateralVerifierTest is Test {
         assertEq(ts, block.timestamp);
     }
 
-    function test_getCollateralValue_nonexistent_returns_zero() public view {
+    function test_getCollateralValue_nonexistent_reverts() public {
         bytes32 fakeId = keccak256("nonexistent");
-        (uint256 minValue, address asset, uint256 ts) = verifier.getCollateralValue(fakeId);
-        assertEq(minValue, 0);
-        assertEq(asset, address(0));
-        assertEq(ts, 0);
+        vm.expectRevert();
+        verifier.getCollateralValue(fakeId);
     }
 
     // ─── registerAsset Tests ─────────────────────────────────────────

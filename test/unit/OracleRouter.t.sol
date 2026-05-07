@@ -44,10 +44,12 @@ contract MockAggregator is IAggregatorV3 {
         address public asset = makeAddr("asset");
 
         function setUp() public {
-            vm.prank(owner);
-            oracle = new OracleRouter(owner, 500); // 5% deviation threshold
+            vm.warp(100_000);
 
-            mockFeed = new MockAggregator(100_000_000, 8); // $1.00 in 8 decimals
+            vm.prank(owner);
+            oracle = new OracleRouter(owner, 500);
+
+            mockFeed = new MockAggregator(100_000_000, 8);
         }
 
         // ─── Price Feed Registration ─────────────────────────────────────
