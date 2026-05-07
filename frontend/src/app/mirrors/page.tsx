@@ -4,18 +4,21 @@ import { useReadContract, useReadContracts } from "wagmi";
 import { bscTestnet, avalancheFuji } from "wagmi/chains";
 import { MirrorTable, type MirrorEntry } from "@/components/MirrorTable";
 import { XYTHUM_TOKEN_ABI, CANONICAL_FACTORY_ABI, CONTRACTS } from "@/lib/contracts";
-import { monadTestnet } from "@/lib/chains";
-import { useState, useMemo, useEffect, useRef } from "react";
-import { PageHeader } from "@/components/primitives/PageHeader";
-import { PaperButton } from "@/components/primitives/PaperButton";
-import { TerminalPanel } from "@/components/primitives/TerminalPanel";
-import { Numeric } from "@/components/primitives/Numeric";
+import { getChainName, monadTestnet } from "@/lib/chains";
+import { useState, useMemo } from "react";
 
-const POLL_INTERVAL = 15_000;
+const ACTIVE_CHAINS = [
+  { chain: avalancheFuji, key: "avalancheFuji" },
+  { chain: bscTestnet, key: "bscTestnet" },
+  { chain: monadTestnet, key: "monadTestnet" },
+] as const;
+
+const POLL_INTERVAL = 15_000; // 15s auto-refresh
 
 export default function MirrorsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // ── Fetch all mirror addresses from both factories ──
   const {
     data: fujiMirrors,
     refetch: refetchFuji,
@@ -52,6 +55,7 @@ export default function MirrorsPage() {
     query: { refetchInterval: POLL_INTERVAL },
   });
 
+  // ── Build multicall contracts for metadata reads ──
   const metadataCalls = useMemo(() => {
     const calls: {
       address: `0x${string}`;
@@ -85,8 +89,9 @@ export default function MirrorsPage() {
     },
   });
 
+  // ── Assemble mirror entries from results ──
   const mirrors = useMemo(() => {
-    const entries: (MirrorEntry & { deployIndex: number })[] = [];
+    const entries: MirrorEntry[] = [];
     let resultIdx = 0;
 
     const processMirrors = (
@@ -94,8 +99,9 @@ export default function MirrorsPage() {
       targetChainId: number,
     ) => {
       if (!addresses || !metadataResults) return;
-      addresses.forEach((addr, i) => {
+      for (const addr of addresses) {
         const symbol = metadataResults[resultIdx]?.result as string | undefined;
+        const name = metadataResults[resultIdx + 1]?.result as string | undefined;
         const originContract = metadataResults[resultIdx + 2]?.result as string | undefined;
         const originChainId = metadataResults[resultIdx + 3]?.result as bigint | undefined;
         resultIdx += 4;
@@ -108,46 +114,19 @@ export default function MirrorsPage() {
             originChainId: originChainId ? Number(originChainId) : 0,
             originContract: originContract || "0x",
             status: "active",
-            // higher index = more recent (factory pushes in order)
-            deployIndex: i,
           });
         }
-      });
+      }
     };
 
     processMirrors(fujiMirrors as readonly `0x${string}`[] | undefined, avalancheFuji.id);
     processMirrors(bnbMirrors as readonly `0x${string}`[] | undefined, bscTestnet.id);
     processMirrors(monadMirrors as readonly `0x${string}`[] | undefined, monadTestnet.id);
 
-    // Sort by deployIndex desc per chain → newest first within each chain.
-    // Then interleave by chain so the very latest from any chain bubbles up.
-    return entries.sort((a, b) => {
-      if (a.targetChainId !== b.targetChainId) {
-        return b.deployIndex - a.deployIndex;
-      }
-      return b.deployIndex - a.deployIndex;
-    });
+    return entries;
   }, [fujiMirrors, bnbMirrors, monadMirrors, metadataResults]);
 
-  // Track which mirror addresses are new since the last render — flag them
-  // for a one-shot "fresh" highlight + stamp animation.
-  const seenAddrs = useRef<Set<string>>(new Set());
-  const [freshAddrs, setFreshAddrs] = useState<Set<string>>(new Set());
-  useEffect(() => {
-    const currentAddrs = new Set(mirrors.map((m) => m.address));
-    const newOnes = new Set<string>();
-    for (const a of currentAddrs) {
-      if (!seenAddrs.current.has(a)) newOnes.add(a);
-    }
-    if (seenAddrs.current.size > 0 && newOnes.size > 0) {
-      setFreshAddrs(newOnes);
-      const t = setTimeout(() => setFreshAddrs(new Set()), 4500);
-      seenAddrs.current = currentAddrs;
-      return () => clearTimeout(t);
-    }
-    seenAddrs.current = currentAddrs;
-  }, [mirrors]);
-
+  // ── Manual refresh ──
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await Promise.all([refetchFuji(), refetchBnb(), refetchMonad(), refetchMetadata()]);
@@ -156,234 +135,80 @@ export default function MirrorsPage() {
 
   const isLoading = fujiLoading || bnbLoading || monadLoading;
 
-  const fujiCount = (fujiMirrors as readonly unknown[] | undefined)?.length ?? 0;
-  const bnbCount = (bnbMirrors as readonly unknown[] | undefined)?.length ?? 0;
-  const monadCount = (monadMirrors as readonly unknown[] | undefined)?.length ?? 0;
-
   return (
-    <div className="space-y-10">
-      <PageHeader
-        article="ARTICLE VI"
-        kicker="OFFICE OF THE REGISTRAR"
-        title={
-          <>
-            The mirror <em className="italic">registry</em>.
-          </>
-        }
-        lede={
-          <>
-            A live ledger of every canonical mirror issued by the protocol,
-            across every target chain. Auto-refreshes every fifteen seconds.
-          </>
-        }
-        stamp={{
-          text: isLoading ? "FETCHING" : `${mirrors.length} ENTRIES`,
-          meta: "TRI-CHAIN · LIVE",
-          tone: "leaf",
-        }}
-        meta={
-          <PaperButton tone="ghost" size="sm" disabled={isRefreshing} onClick={handleRefresh}>
-            {isRefreshing ? "Refreshing…" : "↻ Refresh"}
-          </PaperButton>
-        }
-      />
-
-      {/* Per-chain counts */}
-      <section className="grid grid-cols-12 gap-px bg-cover-3 border border-cover-3">
-        <ChainStat name="AVALANCHE FUJI" id={43113} count={fujiCount} tone="wax" />
-        <ChainStat name="BNB TESTNET" id={97} count={bnbCount} tone="leaf" />
-        <ChainStat name="MONAD TESTNET" id={10143} count={monadCount} tone="verde" />
-      </section>
-
-      {!isLoading && mirrors.length === 0 && (
-        <div className="bg-leaf-0/5 border-2 border-leaf-1 border-dashed px-6 py-5 font-mono text-[12px] text-ink-page">
-          <div className="text-leaf-0 text-[10px] uppercase tracking-stamp mb-2">
-            FRESH FACTORY DEPLOYMENT · NO MIRRORS YET
-          </div>
-          <p className="font-body text-[13px] text-ink-muted leading-relaxed">
-            The CanonicalFactory contracts on all three chains were redeployed
-            with the new <code className="text-ink-page">mintFromLock</code>{" "}
-            entry-point. The registry below is empty because the new factories
-            haven&apos;t issued any mirrors yet.{" "}
-            <a href="/attest" className="text-leaf-0 underline hover:text-leaf-1">
-              Issue a fresh mirror via /attest →
-            </a>{" "}
-            or run the round-trip flow on{" "}
-            <a href="/lock" className="text-leaf-0 underline hover:text-leaf-1">
-              /lock
-            </a>{" "}
-            to populate this list.
-          </p>
-        </div>
-      )}
-
-      <MirrorTable mirrors={mirrors} freshAddrs={freshAddrs} />
-
-      {/* Detailed cards — also recent-first */}
-      {mirrors.length > 0 && (
-        <section>
-          <div className="flex items-baseline justify-between mb-4">
-            <div className="font-mono text-[10px] uppercase tracking-stamp text-leaf-2">
-              §  ACTIVITY · NEWEST FIRST
-            </div>
-            <div className="font-mono text-[9px] uppercase tracking-stamp text-ink-faint">
-              {freshAddrs.size > 0 ? `${freshAddrs.size} JUST ISSUED` : "POLLING · 15s"}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {mirrors.map((m, idx) => (
-              <MirrorCard
-                key={`${m.targetChainId}-${m.address}`}
-                mirror={m}
-                isFresh={freshAddrs.has(m.address)}
-                rank={idx + 1}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-7">
-          <TerminalPanel label="HOW THE REGISTRY WORKS" status="idle">
-            <div className="p-6 space-y-3 text-[13px] text-ink-page leading-relaxed font-body">
-              <Item>Each mirror is a canonical ERC-20 on its target chain.</Item>
-              <Item>
-                Deployed at a deterministic CREATE2 address derived from the
-                attestation tuple — predictable before deployment.
-              </Item>
-              <Item>
-                Issued only against a threshold-signed attestation (3-of-5
-                ECDSA, EIP-712 typed data).
-              </Item>
-              <Item>
-                One mirror per (origin · srcChain · dstChain) triple. Salt
-                guarantees uniqueness.
-              </Item>
-            </div>
-          </TerminalPanel>
-        </div>
-        <div className="col-span-12 lg:col-span-5">
-          <div className="parchment passport-corner p-6 h-full">
-            <div className="font-mono text-[9px] uppercase tracking-stamp text-leaf-2 mb-2">
-              REGISTRY GUARANTEE
-            </div>
-            <div className="font-display italic text-2xl md:text-3xl text-ink-deep leading-tight">
-              &ldquo;The registry is the source of truth. Look up the address —
-              if it isn&apos;t here, it isn&apos;t a mirror.&rdquo;
-            </div>
-            <div className="mt-4 font-mono text-[9px] uppercase tracking-stamp text-ink-deep/50">
-              REGISTRAR · OFFICIAL SEAL
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function ChainStat({
-  name,
-  id,
-  count,
-  tone,
-}: {
-  name: string;
-  id: number;
-  count: number;
-  tone: "wax" | "leaf" | "verde";
-}) {
-  const dot = tone === "wax" ? "bg-wax-0" : tone === "leaf" ? "bg-leaf-0" : "bg-verde-0";
-  return (
-    <div className="col-span-12 md:col-span-4 bg-cover-1 px-6 py-5 flex items-center justify-between">
+    <div className="space-y-6">
       <div>
-        <div className="font-mono text-[9px] uppercase tracking-stamp text-ink-muted flex items-center gap-2">
-          <span className={`w-1.5 h-1.5 rounded-full ${dot} pulse-leaf`} />
-          {name}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold mb-2">Mirror Explorer</h1>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="text-sm px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:border-gray-600 transition-colors disabled:opacity-50"
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
-        <div className="font-mono text-[9px] uppercase tracking-stamp text-ink-faint mt-1">
-          CHAIN № {id}
-        </div>
-      </div>
-      <Numeric value={count} size="xl" tone={tone} embossed />
-    </div>
-  );
-}
-
-function Item({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex gap-3">
-      <span className="font-display italic text-leaf-1 text-lg leading-none flex-shrink-0">※</span>
-      <span>{children}</span>
-    </div>
-  );
-}
-
-function MirrorCard({
-  mirror,
-  isFresh,
-  rank,
-}: {
-  mirror: MirrorEntry;
-  isFresh?: boolean;
-  rank?: number;
-}) {
-  const targetTone =
-    mirror.targetChainId === 97 ? "leaf" : mirror.targetChainId === 43113 ? "wax" : "verde";
-  const targetColor =
-    targetTone === "leaf" ? "text-leaf-0" : targetTone === "wax" ? "text-wax-0" : "text-verde-0";
-
-  return (
-    <div
-      className={`parchment passport-corner-tr p-6 relative overflow-hidden ${
-        isFresh ? "ring-2 ring-verde-0 ring-offset-2 ring-offset-cover-0" : ""
-      }`}
-    >
-      <div className="absolute top-3 right-3">
-        {isFresh ? (
-          <div className="stamp stamp-fresh text-verde-0 text-[10px] tracking-stamp">
-            <span className="block leading-tight">JUST ISSUED</span>
-            <span className="block leading-none text-[7px] mt-0.5 opacity-80">
-              REGISTRY № {mirror.targetChainId}
-            </span>
-          </div>
-        ) : (
-          <div className="stamp text-verde-0 text-[10px] tracking-stamp">
-            <span className="block leading-tight">CANONICAL</span>
-            <span className="block leading-none text-[7px] mt-0.5 opacity-80">
-              REGISTRY № {mirror.targetChainId}
-            </span>
-          </div>
+        <p className="text-gray-400 text-sm">
+          Browse all canonical Xythum mirror tokens deployed across chains.
+        </p>
+        {isLoading && (
+          <p className="text-xs text-yellow-400 mt-1">
+            Loading mirrors from on-chain factories...
+          </p>
         )}
+        {!isLoading && mirrors.length > 0 && (
+          <p className="text-xs text-green-400 mt-1">
+            {mirrors.length} canonical mirror{mirrors.length > 1 ? "s" : ""} found on-chain
+          </p>
+        )}
+        <p className="text-xs text-gray-500 mt-1">
+          Auto-refreshes every 15 seconds. New mirrors deployed via the Attest page will appear here
+          after deployment confirms on-chain.
+        </p>
       </div>
-      <div className="font-mono text-[9px] uppercase tracking-stamp text-ink-deep/55 flex items-center gap-2">
-        {rank && <span className="text-leaf-1">#{String(rank).padStart(2, "0")}</span>}
-        <span>ISSUED MIRROR · NO. {mirror.address.slice(2, 8).toUpperCase()}</span>
-      </div>
-      <div className={`font-display text-5xl ${targetColor} leading-none mt-1`}>
-        {mirror.symbol}
-      </div>
-      <div className="mt-4 pt-4 border-t border-ink-deep/15 space-y-2 font-mono text-[11px] text-ink-deep">
-        <Row label="ADDRESS" value={mirror.address} />
-        <Row label="ORIGIN" value={mirror.originContract} />
-        <Row label="SOURCE CHAIN" value={`№ ${mirror.originChainId}`} />
-        <Row label="TARGET CHAIN" value={`№ ${mirror.targetChainId}`} />
-      </div>
-      <div className="mt-5 flex items-end justify-between">
-        <span className="microprint">XYTHUM·MIRROR·CANONICAL·VERIFIED·</span>
-        <div className="wax-seal w-8 h-8" />
-      </div>
-    </div>
-  );
-}
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="font-mono text-[9px] uppercase tracking-stamp text-ink-deep/50">{label}</span>
-      <span className="font-mono text-[10px] text-ink-deep truncate">
-        {value.length > 28 ? `${value.slice(0, 14)}…${value.slice(-6)}` : value}
-      </span>
+      <MirrorTable mirrors={mirrors} />
+
+      {/* Mirror details */}
+      {mirrors.map((m) => (
+        <div key={`${m.targetChainId}-${m.address}`} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 className="text-sm font-medium text-gray-400 mb-3">
+            Mirror Details: {m.symbol}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-500">Token Address</p>
+              <p className="font-mono text-xs text-white break-all">{m.address}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Symbol</p>
+              <p className="text-white">{m.symbol}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Target Chain</p>
+              <p className="text-yellow-400">{getChainName(m.targetChainId)} ({m.targetChainId})</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Origin RWA</p>
+              <p className="font-mono text-xs text-white break-all">{m.originContract}</p>
+              <p className="text-red-400 text-xs mt-0.5">
+                {getChainName(m.originChainId)} ({m.originChainId})
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6">
+        <h3 className="text-sm font-medium text-gray-400 mb-2">How Mirrors Work</h3>
+        <ul className="text-sm text-gray-500 space-y-1 list-disc list-inside">
+          <li>Each mirror is a canonical ERC-20 token on the target chain</li>
+          <li>Deployed at a deterministic CREATE2 address derived from the attestation</li>
+          <li>Verified by threshold signature from the signer network</li>
+          <li>Compliance-enforced on every transfer via pluggable compliance contracts</li>
+          <li>One mirror per origin/target chain pair (CREATE2 salt is deterministic)</li>
+        </ul>
+      </div>
     </div>
   );
 }

@@ -5,26 +5,12 @@ interface StatCardProps {
   color?: string;
 }
 
-const COLOR_MAP: Record<string, string> = {
-  "text-brand-400": "text-leaf-0",
-  "text-blue-400": "text-leaf-0",
-  "text-purple-400": "text-leaf-1",
-  "text-green-400": "text-verde-0",
-  "text-cyan-400": "text-leaf-1",
-  "text-violet-400": "text-leaf-1",
-  "text-yellow-400": "text-leaf-0",
-  "text-red-400": "text-wax-0",
-};
-
-export function StatCard({ title, value, subtitle, color = "text-leaf-0" }: StatCardProps) {
-  const accent = COLOR_MAP[color] || color;
+export function StatCard({ title, value, subtitle, color = "text-brand-400" }: StatCardProps) {
   return (
-    <div className="bg-cover-1 border border-cover-3 bracket-leaf p-5">
-      <p className="font-mono text-[9px] uppercase tracking-stamp text-ink-faint">{title}</p>
-      <p className={`font-mono tabular-nums text-3xl mt-1 embossed-leaf ${accent}`}>{value}</p>
-      {subtitle && (
-        <p className="font-mono text-[9px] uppercase tracking-stamp text-ink-muted mt-1">{subtitle}</p>
-      )}
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+      <p className="text-sm text-gray-400 mb-1">{title}</p>
+      <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
     </div>
   );
 }
