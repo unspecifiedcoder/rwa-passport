@@ -239,7 +239,7 @@ contract CanonicalFactoryTest is Test {
         assertTrue(addr1 != addr2, "Different origins must produce different addresses");
     }
 
-    function test_computeMirrorAddress_different_for_different_targetChains() public {
+function test_computeMirrorAddress_different_for_different_origins_and_targets() public {
         (AttestationLib.Attestation memory att1,,) =
             _buildSignedAttestation(ORIGIN_CONTRACT, ORIGIN_CHAIN, TARGET_CHAIN, 1);
 
