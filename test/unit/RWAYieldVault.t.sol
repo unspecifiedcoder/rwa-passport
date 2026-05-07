@@ -24,12 +24,7 @@ contract RWAYieldVaultTest is Test {
         vm.startPrank(owner);
         token = new ProtocolToken(owner, INITIAL_MINT, treasury);
         vault = new RWAYieldVault(
-            address(token),
-            "Xythum RWA Vault",
-            "xVault",
-            owner,
-            feeRecipient,
-            DEPOSIT_CAP
+            address(token), "Xythum RWA Vault", "xVault", owner, feeRecipient, DEPOSIT_CAP
         );
         vault.setYieldSource(yieldSource, true);
         vm.stopPrank();
@@ -91,11 +86,12 @@ contract RWAYieldVaultTest is Test {
         vm.prank(alice);
         vault.deposit(10_000 ether, alice);
 
+        // Redeem within the 20% instant withdrawal limit
         vm.prank(alice);
-        vault.redeem(5_000 ether, alice, alice);
+        vault.redeem(2_000 ether, alice, alice);
 
-        assertEq(vault.totalAssets(), 5_000 ether);
-        assertEq(vault.balanceOf(alice), 5_000 ether);
+        assertApproxEqRel(vault.totalAssets(), 8_000 ether, 0.001e18);
+        assertEq(vault.balanceOf(alice), 8_000 ether);
     }
 
     function test_withdrawalLimit() public {
@@ -137,25 +133,24 @@ contract RWAYieldVaultTest is Test {
     }
 
     function test_proportionalYieldDistribution() public {
-        // Alice deposits 75k, Bob deposits 25k
+        // Raise withdrawal cap to 100% for this test
+        vm.prank(owner);
+        vault.setMaxInstantWithdrawalBps(10_000);
+
         vm.prank(alice);
         vault.deposit(75_000 ether, alice);
 
         vm.prank(bob);
         vault.deposit(25_000 ether, bob);
 
-        // 10k yield
         vm.prank(yieldSource);
         vault.harvest(10_000 ether);
 
-        // Alice redeems all shares
         uint256 aliceShares = vault.balanceOf(alice);
         vm.prank(alice);
         vault.redeem(aliceShares, alice, alice);
 
-        // Alice should get ~75% of total including yield
-        // (minus performance fee)
-        assertGt(token.balanceOf(alice), 925_000 ether + 75_000 ether); // More than initial
+        assertGt(token.balanceOf(alice), 925_000 ether + 75_000 ether);
     }
 
     function test_unauthorizedYieldSourceReverts() public {

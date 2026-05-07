@@ -27,6 +27,14 @@ contract XythumToken is ERC20, IXythumToken {
     error ZeroAddress();
     error MintCapExceeded(uint256 requested, uint256 remaining);
     error InvalidMintCap(uint256 newCap, uint256 currentSupply);
+    error AlreadyBurnedForLock(bytes32 lockId);
+    error InsufficientBalanceForBurn(address holder, uint256 requested, uint256 available);
+
+    // ─── Events ──────────────────────────────────────────────────────
+    /// @notice Emitted when a holder burns mirror tokens against a specific
+    ///         lockId to signal "release my original RWA on the origin chain."
+    ///         Watched by signers, who then issue an UnlockReceipt.
+    event BurnedForLock(bytes32 indexed lockId, address indexed burner, uint256 amount);
 
     // ─── Immutables ──────────────────────────────────────────────────
     /// @notice The original RWA contract address on the source chain
@@ -50,6 +58,10 @@ contract XythumToken is ERC20, IXythumToken {
 
     /// @notice Running total of all tokens ever minted (does not decrease on burn)
     uint256 public totalMinted;
+
+    /// @notice Tracks which lockIds have already been burned-against on this chain.
+    ///         A given lockId can be consumed at most once.
+    mapping(bytes32 lockId => bool) public burnedForLock;
 
     // ─── Constructor ─────────────────────────────────────────────────
     /// @notice Deploy a new mirror token
@@ -92,6 +104,46 @@ contract XythumToken is ERC20, IXythumToken {
     function burn(address from, uint256 amount) external {
         if (!authorizedMinters[msg.sender]) revert Unauthorized(msg.sender);
         _burn(from, amount);
+    }
+
+    /// @notice Burn `amount` of the caller's mirror tokens against a specific
+    ///         `lockId`. The lockId is one-shot — a given lockId can only be
+    ///         consumed once. Off-chain signers watch the `BurnedForLock`
+    ///         event and issue an UnlockReceipt for the matching escrow.
+    /// @dev    No `from` parameter — the caller burns their own tokens. This
+    ///         intentionally avoids needing approvals / allowance management.
+    /// @param amount Amount of xRWA to burn
+    /// @param lockId Identifier matching an outstanding lock on the origin chain
+    function burnForLock(uint256 amount, bytes32 lockId) external {
+        if (burnedForLock[lockId]) revert AlreadyBurnedForLock(lockId);
+        uint256 bal = balanceOf(msg.sender);
+        if (bal < amount) revert InsufficientBalanceForBurn(msg.sender, amount, bal);
+        burnedForLock[lockId] = true;
+        _burn(msg.sender, amount);
+        emit BurnedForLock(lockId, msg.sender, amount);
+    }
+
+    /// @notice Bump the mint cap by `amount` and mint to `to` in one call.
+    ///         Used by `CanonicalFactory.mintFromLock` to grow supply when a
+    ///         new lock arrives. The cap is a cumulative high-water mark and
+    ///         never decreases (matches existing `totalMinted` semantics).
+    /// @dev    Restricted to authorized minters (factory + adapters).
+    /// @param to Recipient of the freshly minted xRWA
+    /// @param amount Amount to mint AND amount to add to mintCap
+    /// @param /* lockId */ Optional context (passed through for indexers; not stored)
+    function bumpCapAndMint(
+        address to,
+        uint256 amount,
+        bytes32 /* lockId */
+    )
+        external
+    {
+        if (!authorizedMinters[msg.sender]) revert Unauthorized(msg.sender);
+        if (to == address(0)) revert ZeroAddress();
+        // Cumulative high-water mark: cap can only grow.
+        mintCap += amount;
+        totalMinted += amount;
+        _mint(to, amount);
     }
 
     /// @notice Set or revoke minter authorization

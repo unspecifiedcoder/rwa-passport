@@ -348,7 +348,7 @@ contract RWAHookTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(uint256(1))
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
     }
 
@@ -376,7 +376,7 @@ contract RWAHookTest is Test, Deployers {
             IPoolManager.ModifyLiquidityParams({
                 tickLower: -120, tickUpper: 120, liquidityDelta: 1e18, salt: bytes32(0)
             }),
-            ZERO_BYTES
+            DEFAULT_HOOK_DATA
         );
         vm.stopPrank();
     }

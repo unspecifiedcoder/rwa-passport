@@ -2,9 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {},
   webpack: (config) => {
-    // wagmi/connectors tries to import optional wallet SDKs
-    // Mark them as external to avoid build failures
     config.resolve.fallback = {
       ...config.resolve.fallback,
       "pino-pretty": false,

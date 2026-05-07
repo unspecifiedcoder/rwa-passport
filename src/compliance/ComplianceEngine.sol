@@ -85,21 +85,17 @@ contract ComplianceEngine is IComplianceEngine, Ownable2Step {
     // ─── Credential Management ───────────────────────────────────────
 
     /// @inheritdoc IComplianceEngine
-    function setCredential(
-        address investor,
-        InvestorTier tier,
-        uint256 expiry
-    ) external onlyProvider {
+    function setCredential(address investor, InvestorTier tier, uint256 expiry)
+        external
+        onlyProvider
+    {
         if (investor == address(0)) revert ZeroAddress();
         if (tier == InvestorTier.NONE) revert InvalidTier();
 
         bool isNew = credentials[investor].tier == InvestorTier.NONE;
 
         credentials[investor] = Credential({
-            tier: tier,
-            expiry: expiry,
-            issuedAt: block.timestamp,
-            issuedBy: msg.sender
+            tier: tier, expiry: expiry, issuedAt: block.timestamp, issuedBy: msg.sender
         });
 
         if (isNew) totalCredentialed++;
@@ -124,10 +120,7 @@ contract ComplianceEngine is IComplianceEngine, Ownable2Step {
             bool isNew = credentials[investors[i]].tier == InvestorTier.NONE;
 
             credentials[investors[i]] = Credential({
-                tier: tiers[i],
-                expiry: expiries[i],
-                issuedAt: block.timestamp,
-                issuedBy: msg.sender
+                tier: tiers[i], expiry: expiries[i], issuedAt: block.timestamp, issuedBy: msg.sender
             });
 
             if (isNew) totalCredentialed++;

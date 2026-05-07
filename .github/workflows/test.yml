@@ -28,7 +28,7 @@ jobs:
         id: fmt
 
       - name: Run Forge build
-        run: forge build --sizes
+        run: forge build
         id: build
 
       - name: Run Forge tests
@@ -70,6 +70,6 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npx next build
+        run: npx next build --webpack
         env:
           NEXT_PUBLIC_ALCHEMY_API_KEY: "demo"

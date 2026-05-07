@@ -22,25 +22,9 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
-      - name: Show Forge version
-        run: forge --version
-
-      - name: List source files
-        run: find src -name "*.sol" | sort
-
       - name: Build contracts
-        run: forge build --force 2>&1 || true
+        run: forge build
         id: build
-
-      - name: Check build status
-        run: |
-          if [ ! -d "out" ]; then
-            echo "BUILD FAILED - no out directory"
-            forge build --force 2>&1
-            exit 1
-          fi
-          echo "Build artifacts found:"
-          ls out/ | head -20
 
   # ── Stage 2: Unit Tests ─────────────────────────────────────────
   unit-tests:
@@ -56,13 +40,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Run unit tests
-        run: forge test --match-path "test/unit/*" -vvv --gas-report | tee gas-report.txt
-
-      - name: Upload gas report
-        uses: actions/upload-artifact@v4
-        with:
-          name: gas-report
-          path: gas-report.txt
+        run: forge test --match-path "test/unit/*" -vvv
 
   # ── Stage 3: Integration Tests ──────────────────────────────────
   integration-tests:

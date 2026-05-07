@@ -74,12 +74,8 @@ contract FeeRouter is IFeeRouter, Ownable2Step, ReentrancyGuard {
         protocolToken = _protocolToken;
 
         // Default split: 40% treasury, 30% staking, 20% insurance, 10% burn
-        feeSplit = FeeSplit({
-            treasuryBps: 4000,
-            stakingBps: 3000,
-            insuranceBps: 2000,
-            burnBps: 1000
-        });
+        feeSplit =
+            FeeSplit({ treasuryBps: 4000, stakingBps: 3000, insuranceBps: 2000, burnBps: 1000 });
     }
 
     // ─── Fee Collection ──────────────────────────────────────────────

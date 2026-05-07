@@ -56,11 +56,7 @@ contract EnterpriseFullStackTest is Test {
 
         // 5. Deploy fee router
         feeRouter = new FeeRouter(
-            address(treasury),
-            address(staking),
-            insuranceFund,
-            address(token),
-            deployer
+            address(treasury), address(staking), insuranceFund, address(token), deployer
         );
         token.setTransferLimitExempt(address(feeRouter), true);
 
